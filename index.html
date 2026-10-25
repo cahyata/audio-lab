@@ -4,335 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Lab Audio IEM</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-/* Layout: kolom tunggal berisi bagian-bagian lab; tiap bagian = teori singkat + panel percobaan. Grafik frekuensi log 20 Hz-20 kHz adalah motif utama. */
-:root{
-  --bg:#EBEEF3; --panel:#F8F9FB; --panel2:#DFE4EC; --ink:#11151C; --ink2:#454E5C; --line:#C3CBD7;
-  --shade:rgba(17,21,28,.045);
-  --accent:#2A44EE; --accent-soft:rgba(42,68,238,.14); --on-accent:#FFFFFF;
-  --signal:#C24A08; --signal-soft:rgba(194,74,8,.16); --ok:#0C8660;
-  --font-ui:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --font-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#0C1018; --panel:#141A25; --panel2:#1E2635; --ink:#E9EDF5; --ink2:#9BA6B9; --line:#2A3347;
-    --shade:rgba(233,237,245,.045);
-    --accent:#8EA0FF; --accent-soft:rgba(142,160,255,.2); --on-accent:#0C1018;
-    --signal:#FF9A4D; --signal-soft:rgba(255,154,77,.2); --ok:#4FD1A0; color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#0C1018; --panel:#141A25; --panel2:#1E2635; --ink:#E9EDF5; --ink2:#9BA6B9; --line:#2A3347;
-  --shade:rgba(233,237,245,.045);
-  --accent:#8EA0FF; --accent-soft:rgba(142,160,255,.2); --on-accent:#0C1018;
-  --signal:#FF9A4D; --signal-soft:rgba(255,154,77,.2); --ok:#4FD1A0; color-scheme:dark;
-}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{
-  margin:0; background:var(--bg); color:var(--ink); font:400 1.0625rem/1.65 var(--font-ui);
-  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
-  padding-block:0 170px; -webkit-text-size-adjust:100%;
-}
-main{max-width:1060px;margin-inline:auto}
-h1,h2,h3{margin:0;text-wrap:balance}
-p{margin:0 0 1em}
-a{color:var(--accent)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.skip{position:absolute;left:-999px}
-.skip:focus{left:16px;top:8px;background:var(--panel);padding:8px 12px;z-index:50}
-
-/* nav */
-.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line);
-  display:flex;align-items:center;gap:6px;overflow-x:auto;padding-block:8px;scrollbar-width:none;max-width:1060px;margin-inline:auto}
-.nav::-webkit-scrollbar{display:none}
-.nav b{font:800 .95rem var(--font-ui);letter-spacing:-.01em;padding-right:10px;white-space:nowrap}
-.nav .ng{font:500 .66rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--signal);padding:0 4px 0 12px;white-space:nowrap;border-left:1px solid var(--line)}
-.nav .ng:first-of-type{border-left:0;padding-left:0}
-.cat{padding-block:72px 12px;border-top:3px solid var(--ink);display:grid;gap:12px;max-width:70ch;scroll-margin-top:52px}
-.cat h2.cat-t{font:800 clamp(2.2rem,6vw,3.6rem)/1 var(--font-ui);letter-spacing:-.04em}
-.cat .terms{display:flex;flex-wrap:wrap;gap:6px}
-.cat .terms a{font:500 .78rem var(--font-mono);text-decoration:none;color:var(--ink);border:1px solid var(--line);padding:4px 10px;border-radius:999px}
-.cat .terms a:hover{border-color:var(--ink2)}
-.cats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:760px}
-@media (max-width:620px){.cats{grid-template-columns:minmax(0,1fr)}}
-.cats a{display:grid;gap:4px;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:14px 16px;text-decoration:none;color:var(--ink)}
-.cats a:hover{border-color:var(--ink2)}
-.cats strong{font:750 1.25rem var(--font-ui);letter-spacing:-.02em}
-.cats span{font-size:.9rem;color:var(--ink2);line-height:1.45}
-@media (min-width:900px){
-  .hero{grid-template-columns:minmax(0,1fr) minmax(260px,340px);column-gap:48px;align-items:start}
-  .hero>*{grid-column:1}
-  .hero>.cats{grid-column:2;grid-row:1 / span 4;grid-template-columns:minmax(0,1fr);max-width:none;margin-top:12px}
-  .hero>.cats a{padding:18px 20px}
-}
-.nav a{font:500 .78rem var(--font-mono);letter-spacing:.04em;text-decoration:none;color:var(--ink2);padding:6px 10px;border-radius:5px;white-space:nowrap}
-.nav a:hover{background:var(--panel2);color:var(--ink)}
-
-/* nav: bar atas di layar sempit, sidebar kiri di layar lebar */
-.nav a{position:relative;z-index:1;transition:color .25s ease,background-color .25s ease,transform .25s ease}
-.nav a.on{color:var(--ink);background:var(--panel2)}
-.nav-ind{display:none}
-.nav>*:not(.nav-ind){animation:navIn .5s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:calc(var(--i,0)*35ms)}
-@keyframes navIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
-@media (min-width:1000px){
-  body{padding-left:calc(216px + 32px)}
-  .nav{position:fixed;left:0;top:0;bottom:0;width:216px;max-width:none;margin:0;z-index:25;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:2px;overflow-x:hidden;overflow-y:auto;
-    padding:28px 14px 120px;border-bottom:0;border-right:1px solid var(--line);scrollbar-width:thin}
-  .nav b{font-size:1.25rem;padding:0 10px 18px;letter-spacing:-.03em}
-  .nav .ng,.nav .ng:first-of-type{border-left:0;padding:18px 10px 6px}
-  .nav .ng:first-of-type{padding-top:0}
-  .nav a{padding:8px 10px;font-size:.82rem}
-  .nav a:hover{transform:translateX(4px);background:transparent;color:var(--ink)}
-  .nav a.on,.nav a.on:hover{background:transparent;transform:translateX(4px)}
-  .nav-ind{display:block;position:absolute;left:14px;right:14px;top:0;height:0;border-radius:6px;background:var(--panel2);z-index:0;opacity:0;
-    transition:transform .4s cubic-bezier(.3,.8,.2,1),height .4s cubic-bezier(.3,.8,.2,1),opacity .3s ease}
-  .transport{left:216px}
-  .sec,.cat{scroll-margin-top:24px}
-}
-@media (prefers-reduced-motion:reduce){.nav>*{animation:none}.nav a,.nav-ind{transition:none}}
-
-#navBrand{cursor:pointer;transition:opacity .2s ease}
-#navBrand:hover{opacity:.65}
-/* belajar bertahap */
-[hidden]{display:none!important}
-.steps{display:flex;overflow-x:auto;padding:8px 0 16px;max-width:900px;scrollbar-width:thin}
-.sp{flex:1 0 78px;position:relative;display:grid;justify-items:center;align-content:start;gap:7px;background:none;border:0;padding:0 2px;cursor:pointer;color:var(--ink2);font-family:var(--font-ui)}
-.sp::before{content:"";position:absolute;top:18px;left:-50%;right:50%;height:3px;border-radius:2px;background:var(--line);transition:background-color .45s ease}
-.sp:first-child::before{display:none}
-.sp.done::before{background:var(--accent)}
-.sp .n{position:relative;z-index:1;width:38px;height:38px;border-radius:50%;border:2px solid var(--line);background:var(--bg);display:grid;place-items:center;font:600 .85rem var(--font-mono);
-  transition:background-color .35s ease,border-color .35s ease,color .35s ease,transform .25s ease}
-.sp .l{font:600 .7rem/1.2 var(--font-ui);text-align:center;max-width:74px}
-.sp:hover .n{transform:translateY(-2px)}
-.sp.done .n{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-.stepcard{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:24px;display:grid;gap:12px;max-width:820px}
-.stepcard .meta{font:500 .7rem var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--signal)}
-.stepcard h3{font:800 clamp(1.7rem,4vw,2.3rem)/1.1 var(--font-ui);letter-spacing:-.03em}
-.stepcard p{margin:0;font-size:.97rem}
-.stepcard .goal{color:var(--ink2);font-size:1.05rem}
-.stepcard .fl{font:500 .7rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);display:block;margin-bottom:4px}
-.stepfoot{display:flex;flex-wrap:wrap;gap:12px 16px;justify-content:space-between;align-items:center;border-top:3px solid var(--ink);margin-top:56px;padding-top:22px;max-width:820px}
-.stepfoot .sf-mid{font:500 .78rem var(--font-mono);color:var(--ink2)}
-.stepfoot .btn[disabled],.coursebar .btn[disabled]{opacity:.4;cursor:not-allowed}
-
-/* mode layar penuh */
-.coursebar{position:fixed;top:0;left:0;right:0;z-index:40;background:var(--panel);border-bottom:1px solid var(--line);
-  padding:8px max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px))}
-.cb-in{max-width:1060px;margin-inline:auto;display:flex;align-items:center;gap:12px;padding-bottom:8px}
-.cb-in .btn{min-height:34px;padding:6px 12px;font-size:.8rem;white-space:nowrap}
-.cb-steps{flex:1;display:flex;align-items:center;justify-content:center;min-width:0;overflow-x:auto;scrollbar-width:none}
-.cb-dot{flex:none;position:relative;width:38px;height:28px;display:grid;place-items:center;background:none;border:0;padding:0;cursor:pointer}
-.cb-dot::before{content:"";position:absolute;top:13px;left:-50%;right:50%;height:2px;background:var(--line);transition:background-color .4s ease}
-.cb-dot:first-child::before{display:none}
-.cb-dot.done::before,.cb-dot.cur::before{background:var(--accent)}
-.cb-dot span{position:relative;z-index:1;width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--panel);display:grid;place-items:center;font:600 .7rem var(--font-mono);color:var(--ink2);
-  transition:background-color .35s ease,border-color .35s ease,color .35s ease,box-shadow .35s ease}
-.cb-dot.done span{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-.cb-dot.cur span{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
-.cb-title{display:none;flex:1;min-width:0;font:600 .85rem var(--font-ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cb-nav{display:flex;gap:8px}
-.cb-prog{height:3px;background:var(--panel2);margin-inline:calc(-1*max(16px,env(safe-area-inset-left,0px)))}
-.cb-prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .5s cubic-bezier(.3,.8,.2,1)}
-@media (max-width:820px){.cb-steps{display:none}.cb-title{display:block}}
-body.course{padding-top:64px;padding-left:max(16px,env(safe-area-inset-left,0px))}
-body.course .nav,body.course .hero,body.course #jalur .sec-head,body.course #stepStrip{display:none}
-body.course .transport{left:0}
-body.course #jalur{border-top:0;padding-top:28px}
-body.course .sec,body.course .cat{scroll-margin-top:80px}
-body.course main.pgf{animation:pgf .45s cubic-bezier(.2,.7,.2,1)}
-body.course main.pgb{animation:pgb .45s cubic-bezier(.2,.7,.2,1)}
-@keyframes pgf{from{opacity:0;transform:translateX(36px)}to{opacity:1;transform:none}}
-@keyframes pgb{from{opacity:0;transform:translateX(-36px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.sp .n,.sp::before,.cb-dot span,.cb-prog i{transition:none}body.course main.pgf,body.course main.pgb{animation:none}}
-/* layout kiri-kanan di mode layar penuh */
-#cLayout{display:none}
-body.course #cLayout{display:grid;grid-template-columns:minmax(0,1fr);gap:28px}
-body.course #jalur{display:none}
-body.course footer{display:none}
-.cpane{min-width:0}
-body.course .cpane .sec{padding-block:0;border-top:0}
-body.course .cpane .cat{padding-block:8px;border-top:0}
-body.course .cpane .cat h2.cat-t{font-size:1.9rem}
-body.course .cpane h2{font-size:1.6rem}
-body.course .cpane .sec-head{margin-bottom:18px}
-body.course .cpane .lead{font-size:1rem}
-body.course .cpane>*+*{margin-top:22px}
-body.course .cpane .stepcard{max-width:none}
-@media (min-width:900px){
-  body.course{padding-top:var(--bar,64px);padding-bottom:var(--tp,64px);padding-left:0;padding-right:0}
-  body.course main{max-width:none}
-  body.course #cLayout{grid-template-columns:minmax(320px,5fr) minmax(0,7fr);gap:0;height:calc(100dvh - var(--bar,64px) - var(--tp,64px))}
-  .cpane{overflow-y:auto;padding:24px 28px 48px;min-height:0;scrollbar-width:thin}
-  #cLeft{border-right:1px solid var(--line);padding-left:max(24px,env(safe-area-inset-left,0px))}
-  body.course #stepFoot{display:none}
-}
-/* mode belajar: ringkas */
-.stepcard .todo{margin:0;padding-left:1.2em;display:grid;gap:8px;font-size:1rem}
-.stepcard .todo li::marker{color:var(--accent);font-weight:700}
-body.course .hint,body.course .legend{display:none}
-body.course .term-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-body.course .term-grid>div:nth-child(3){display:none}
-body.course .cpane .lab{padding:16px}
-.more{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
-.more summary{cursor:pointer;font:600 .85rem var(--font-ui);color:var(--ink2)}
-.more summary:hover{color:var(--ink)}
-.more[open] summary{margin-bottom:16px}
-/* tanya jawab */
-.faqs{display:grid;gap:0;border-top:1px solid var(--line)}
-.faq{border-bottom:1px solid var(--line)}
-.faq summary{cursor:pointer;list-style:none;padding:15px 36px 15px 0;font:650 1.02rem/1.35 var(--font-ui);position:relative;transition:color .2s ease}
-.faq summary::-webkit-details-marker{display:none}
-.faq summary::after{content:"+";position:absolute;right:6px;top:50%;transform:translateY(-50%);font:500 1.3rem var(--font-mono);color:var(--ink2);transition:transform .3s ease}
-.faq[open] summary::after{transform:translateY(-50%) rotate(45deg)}
-.faq summary:hover{color:var(--accent)}
-.faq-a{padding:0 0 16px;font-size:.97rem;max-width:62ch;animation:faqin .3s ease}
-.faq-a ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
-@keyframes faqin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.faq summary::after,.faq-a{transition:none;animation:none}}
-/* hero */
-.hero{padding-block:56px 40px;display:grid;gap:22px}
-.eyebrow{font:500 .72rem var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);margin:0 0 10px}
-h1{font:800 clamp(2.8rem,9vw,6rem)/.95 var(--font-ui);letter-spacing:-.045em}
-h1 span{display:block;font-weight:400;color:var(--ink2);letter-spacing:-.03em;font-size:.5em;margin-top:.22em}
-.lead{font-size:1.15rem;color:var(--ink2);max-width:62ch}
-.notice{border:1px solid var(--signal);background:var(--signal-soft);padding:12px 16px;border-radius:6px;max-width:70ch;font-size:.95rem;margin:0}
-.notice b{color:var(--signal)}
-.hero-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-
-/* sections */
-.sec{padding-block:60px 24px;border-top:1px solid var(--line);scroll-margin-top:52px}
-.sec-head{display:grid;gap:10px;margin-bottom:26px;max-width:70ch}
-h2{font:750 clamp(1.8rem,4.6vw,2.7rem)/1.08 var(--font-ui);letter-spacing:-.03em}
-h3{font:700 1.15rem/1.3 var(--font-ui);letter-spacing:-.01em}
-.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:32px;align-items:start}
-.split>*{min-width:0}
-@media (max-width:860px){.split{grid-template-columns:minmax(0,1fr);gap:22px}}
-.prose{max-width:62ch}
-.prose h3{margin:1.4em 0 .4em}
-.prose ul{padding-left:1.1em;margin:0 0 1em}
-.prose li{margin-bottom:.35em}
-.lab{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;display:grid;gap:16px;min-width:0}
-.lab-t{font:500 .72rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin:0}
-.hint{font-size:.9rem;color:var(--ink2);margin:0}
-.hint b{color:var(--ink)}
-.mono{font-family:var(--font-mono)}
-.num{font-variant-numeric:tabular-nums}
-
-/* controls */
-.btn{font:600 .84rem var(--font-ui);padding:9px 15px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:6px;cursor:pointer;min-height:38px}
-.btn:hover{border-color:var(--ink2)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-.btn.primary[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
-.btn.ghost{background:transparent}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{font:500 .82rem var(--font-ui);padding:7px 12px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;cursor:pointer;min-height:36px}
-.chip:hover{border-color:var(--ink2)}
-.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.chip.sig[aria-pressed="true"]{background:var(--signal);border-color:var(--signal);color:var(--bg)}
-.field{display:grid;gap:4px}
-.field label,.field .fl{font:500 .74rem var(--font-mono);letter-spacing:.04em;color:var(--ink2);display:flex;justify-content:space-between;gap:8px}
-.field output{color:var(--ink);font-variant-numeric:tabular-nums}
-input[type=range]{width:100%;accent-color:var(--accent);margin:0;min-height:24px}
-input[type=text],textarea,input[type=search]{font:400 .95rem var(--font-ui);background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:9px 12px;width:100%}
-textarea{min-height:84px;resize:vertical}
-.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 20px}
-.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 20px}
-@media (max-width:560px){.grid2,.grid3{grid-template-columns:minmax(0,1fr)}}
-.check{display:flex;gap:10px;align-items:flex-start;font-size:.95rem}
-.check input{margin-top:.35em;accent-color:var(--accent);width:18px;height:18px;flex:none}
-
-/* plots */
-canvas{display:block;width:100%}
-.plot{height:300px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
-.plot.s{height:230px}
-.plot.xs{height:130px}
-@media (max-width:600px){.plot{height:250px}.plot.s{height:210px}}
-.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font:500 .72rem var(--font-mono);color:var(--ink2)}
-.legend i{display:inline-block;width:14px;height:8px;border-radius:2px;margin-right:6px;vertical-align:baseline}
-
-/* term detail */
-.term{border-top:1px solid var(--line);padding-top:16px;display:grid;gap:12px}
-.term-top{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline}
-.tag{font:500 .76rem var(--font-mono);color:var(--signal);border:1px solid var(--signal);padding:2px 8px;border-radius:4px}
-.term-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:0}
-.term-grid dt{font:500 .7rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:4px}
-.term-grid dd{margin:0;font-size:.95rem;line-height:1.55}
-@media (max-width:760px){.term-grid{grid-template-columns:minmax(0,1fr)}}
-
-/* eq bank */
-.eqbank{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:2px;align-items:end}
-.eqcol{display:grid;justify-items:center;gap:6px;min-width:0}
-.eqcol output{font:500 .66rem var(--font-mono);color:var(--ink2);font-variant-numeric:tabular-nums}
-.eqcol span{font:500 .68rem var(--font-mono);color:var(--ink2)}
-.vs{writing-mode:vertical-lr;direction:rtl;height:150px;width:26px;accent-color:var(--accent);margin:0}
-
-/* tables */
-.tw{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
-table{border-collapse:collapse;width:100%;font-size:.92rem;min-width:560px}
-th,td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
-th{font:500 .7rem var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);background:var(--panel)}
-tr:last-child td{border-bottom:0}
-td:first-child{font-weight:600;white-space:nowrap}
-
-/* svg */
-svg{max-width:100%;height:auto;display:block}
-.sv-line{stroke:var(--ink);fill:none;stroke-width:1.6}
-.sv-fill{fill:var(--panel2);stroke:var(--ink);stroke-width:1.6}
-.sv-acc{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.6}
-.sv-sig{stroke:var(--signal);fill:none;stroke-width:1.8}
-.sv-t{font:500 11px var(--font-mono);fill:var(--ink2)}
-.sv-tt{font:600 12px var(--font-ui);fill:var(--ink)}
-.stage-svg{background:var(--bg);border:1px solid var(--line);border-radius:6px}
-
-/* transport */
-.transport{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--panel);border-top:1px solid var(--line);
-  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
-.tp-in{max-width:1060px;margin-inline:auto;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
-.tp-in .vol{display:flex;align-items:center;gap:8px;font:500 .74rem var(--font-mono);color:var(--ink2);flex:1 1 140px;min-width:120px;max-width:220px}
-.mutes{display:flex;gap:6px;flex-wrap:wrap}
-.mode{font:500 .74rem var(--font-mono);color:var(--ink2);flex:1 1 160px}
-.mode b{color:var(--signal);font-weight:500}
-
-/* misc */
-.cols-sv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-@media (max-width:560px){.cols-sv{grid-template-columns:minmax(0,1fr)}}
-.enc-fig[data-enc="none"] .only-closed,.enc-fig[data-enc="none"] .only-open{opacity:.25}
-.enc-fig[data-enc="closed"] .only-open{display:none}
-.enc-fig[data-enc="open"] .only-closed{display:none}
-.enc-fig .leak{stroke-dasharray:4 5;animation:dash 1.2s linear infinite}
-@keyframes dash{to{stroke-dashoffset:-18}}
-.readouts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.ro{border:1px solid var(--line);border-radius:6px;padding:8px 12px}
-.ro small{display:block;font:500 .66rem var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
-.ro strong{font:700 1.05rem var(--font-ui);font-variant-numeric:tabular-nums}
-.tabs{display:flex;flex-wrap:wrap;gap:6px}
-.tabs button{font:600 .84rem var(--font-ui);padding:8px 14px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:6px;cursor:pointer}
-.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.drv{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:22px;align-items:start}
-@media (max-width:760px){.drv{grid-template-columns:minmax(0,1fr)}}
-.drv dl{margin:0;display:grid;gap:10px}
-.drv dt{font:500 .7rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
-.drv dd{margin:0;font-size:.95rem}
-.mp-state{display:grid;gap:6px;font-size:.92rem}
-.mp-log{list-style:none;margin:0;padding:0;display:grid;gap:4px;font:400 .82rem/1.45 var(--font-mono);color:var(--ink2);min-height:7em}
-.mp-log li:first-child{color:var(--ink)}
-.lnk{stroke-width:3;stroke-linecap:round;fill:none}
-.lnk[data-s="off"]{stroke:var(--line);stroke-dasharray:2 7}
-.lnk[data-s="idle"]{stroke:var(--ink2);stroke-dasharray:6 6}
-.lnk[data-s="active"]{stroke:var(--accent);stroke-dasharray:8 6;animation:dash 1s linear infinite}
-.dev{fill:var(--panel2);stroke:var(--ink);stroke-width:1.6}
-.dev[data-s="active"]{stroke:var(--accent);fill:var(--accent-soft)}
-.dev[data-s="off"]{opacity:.45}
-footer{border-top:1px solid var(--line);margin-top:40px;padding-block:24px;color:var(--ink2);font-size:.88rem;max-width:70ch}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.lnk,.enc-fig .leak{animation:none!important}}
-</style>
-
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
 <a class="skip" href="#peta">Lewati ke konten</a>
 <nav class="nav" aria-label="Bagian halaman">
   <i class="nav-ind" id="navInd" aria-hidden="true"></i>
@@ -342,7 +19,7 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding-block:24px;color
   <span class="ng">Tonality</span>
   <a href="#peta">Peta</a><a href="#vokal">Vokal</a><a href="#timbre">Timbre</a>
   <span class="ng">Technicality</span>
-  <a href="#punch">Punch</a><a href="#ruang">Ruang</a><a href="#bukatutup">Open/Closed</a><a href="#driver">Driver</a><a href="#koheren">Koheren</a>
+  <a href="#punch">Transient</a><a href="#ruang">Ruang</a><a href="#bukatutup">Open/Closed</a><a href="#driver">Driver</a><a href="#koheren">Koheren</a>
   <a href="#multipoint">Multipoint</a>
   <span class="ng">Lainnya</span>
   <a href="#harga">Murah vs mahal</a><a href="#alat">Alat uji</a><a href="#uji">Lembar uji</a><a href="#istilah">Istilah</a>
@@ -364,10 +41,10 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding-block:24px;color
     <h1>Lab Audio<span>untuk IEM dan headset</span></h1>
   </div>
   <p class="lead">Muddy, boxy, shouty, piercing, soundstage, separation, koheren. Istilah ini sering dipakai saat orang membahas headset, tetapi jarang ada yang membuat kamu mendengarnya. Di sini tiap istilah punya penjelasan singkat dan satu percobaan yang bisa diputar.</p>
-  <p class="notice"><b>Pakai IEM atau headset kamu sekarang, volume kecil dulu.</b> Semua suara dibuat langsung di browser, tanpa file audio. Beberapa demo sengaja menaikkan treble atau bass, jadi naikkan volume pelan-pelan. Lagu bawaan memakai vokal sintetis. Untuk <b>vokal asli</b>, pakai tombol <b>Pakai lagu sendiri</b> di bar bawah: file lagu dari perangkatmu diputar lewat EQ yang sama dan tidak diunggah ke mana pun.</p>
+  <p class="notice"><b>Pakai IEM atau headset kamu sekarang, volume kecil dulu.</b> Beberapa demo sengaja menaikkan treble atau bass, jadi naikkan volume pelan-pelan. <span class="song-credit" hidden>Lagu bawaan adalah rekaman Dazie Mae, “Two-Timing Lady”. </span>Mau pakai lagumu sendiri? Tekan <b>Pakai lagu sendiri</b> di bar bawah: file diputar di browser dan tidak diunggah ke mana pun. Lab soundstage memakai lagu sintetis agar tiap instrumen bisa digeser.</p>
   <div class="cats">
-    <a href="#tonality"><strong>Tonality</strong><span>Warna dan keseimbangan nada: muddy, boxy, shouty, piercing, sibilance, vokal, timbre.</span></a>
-    <a href="#technicality"><strong>Technicality</strong><span>Kemampuan teknis dan perangkat kerasnya: punch, soundstage, separation, driver, open/closed, koheren, multipoint.</span></a>
+    <a href="#tonality"><strong>Tonality</strong><span>Warna dan keseimbangan nada dari grafik frekuensi. Dinilai dengan selera: muddy, boxy, shouty, piercing, warm, vokal.</span></a>
+    <a href="#technicality"><strong>Technicality</strong><span>Kemampuan yang sulit diukur: transient, imaging, separation, serta perangkat kerasnya: driver, cup, koheren, multipoint.</span></a>
   </div>
   <div class="hero-actions">
     <button class="btn primary" id="heroPlay" aria-pressed="false">Putar lagu demo</button>
@@ -391,8 +68,15 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding-block:24px;color
 <div class="cat" id="tonality">
   <p class="eyebrow">Kategori 1</p>
   <h2 class="cat-t">Tonality</h2>
-  <p class="lead"><b>Tonality</b> adalah warna dan keseimbangan nada sebuah suara: apakah bass, mid, dan treble terdengar proporsional, hangat, terang, atau tajam. Ini hal pertama yang kamu sadari saat memakai headset baru, dan paling mudah dijelaskan lewat grafik frekuensi.</p>
-  <div class="terms"><a href="#peta">Muddy</a><a href="#peta">Boxy</a><a href="#peta">Shouty</a><a href="#peta">Piercing</a><a href="#peta">Sibilance</a><a href="#vokal">Vokal</a><a href="#timbre">Timbre</a></div>
+  <p class="lead"><b>Tonality</b> adalah warna dan keseimbangan nada, yaitu tuning dan frekuensi respons. Ini aspek yang paling mudah diukur lewat grafik, tetapi penilaiannya paling subjektif karena soal selera. Yang dinilai bukan apakah suaranya netral, melainkan apakah <b>tanda suara yang dituju dijalankan dengan baik</b>: hangat, V-shape, atau terang boleh, asal tidak berlebihan.</p>
+  <div class="terms"><a href="#peta">Muddy</a><a href="#peta">Boxy</a><a href="#peta">Shouty</a><a href="#peta">Piercing</a><a href="#peta">Sibilance</a><a href="#peta">Warm</a><a href="#vokal">Vokal</a></div>
+  <div class="tw"><table>
+    <thead><tr><th></th><th>Tonality</th><th>Technicality</th></tr></thead>
+    <tbody>
+      <tr><td>Dasarnya</td><td>Tuning dan frekuensi respons</td><td>Resolusi, transient, imaging</td></tr>
+      <tr><td>Bisa diukur?</td><td>Ya, lewat grafik</td><td>Sulit, dinilai dengan telinga</td></tr>
+      <tr><td>Menilainya</td><td>Soal selera, tidak ada satu yang benar</td><td>Lebih baik, lebih bagus (kecuali decay dan tekstur yang butuh keseimbangan)</td></tr>
+    </tbody></table></div>
 </div>
 
 <!-- ===== PETA ===== -->
@@ -427,6 +111,14 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding-block:24px;color
       <li><b>Treble dan air (6–20 kHz)</b> memberi kilau, desis, dan kesan ruang. Terlalu sedikit terasa tumpul, terlalu banyak terasa tajam.</li>
     </ul>
     <p>Satu hal yang sering terlewat: telinga kita paling peka di sekitar 2–5 kHz. Selisih 3 dB di sana terdengar jauh lebih jelas daripada 3 dB di sub-bass.</p>
+    <h3>Gelap, terang, dan hangat</h3>
+    <ul>
+      <li><b>Gelap (dark)</b>: condong ke frekuensi rendah. Fokus pada nada dasar dan harmonik rendah, jadi instrumen terasa kaya dan berbobot.</li>
+      <li><b>Terang (bright)</b>: condong ke frekuensi tinggi. Fokus pada harmonik tinggi, jadi kejernihan dan kesan udara naik.</li>
+      <li><b>Hangat (warm)</b>: kehangatan, sebagian besar dari tonality dan sebagian dari decay. Skalanya: <b>lumpur</b> (terburuk), <b>hangat</b>, lalu <b>suhu ruang</b> (tanpa kehangatan). Hangat berbeda dari muddy, dan tidak ada yang objektif lebih baik.</li>
+    </ul>
+    <h3>Netral itu tidak ada satu</h3>
+    <p>Kurva target seperti Harman dan IEF Neutral berbeda-beda, dan bentuk telinga tiap orang (HRTF) ikut menggeser hasilnya, terutama di IEM. Karena itu <b>Flat</b> di lab ini hanya acuan untuk membandingkan, bukan yang pasti benar.</p>
   </div>
 </section>
 
@@ -458,13 +150,14 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding-block:24px;color
 <!-- ===== TIMBRE ===== -->
 <section class="sec" id="timbre">
   <div class="sec-head">
-    <p class="eyebrow">Tonality</p>
+    <p class="eyebrow">Irisan tonality dan technicality</p>
     <h2>Timbre</h2>
   </div>
   <div class="split">
     <div class="prose">
       <p><b>Timbre adalah warna suara</b> yang membedakan satu sumber dari yang lain. Piano dan gitar bisa memainkan nada yang sama, tetapi kita langsung tahu mana yang mana. Perbedaannya ada di <b>harmonik</b>: selain nada dasar, setiap alat musik menghasilkan kelipatan frekuensinya dengan kekuatan yang berbeda-beda.</p>
       <p>Headset yang baik menjaga perbandingan harmonik itu. Headset dengan puncak respons mengubahnya, sehingga piano terdengar plastik, gitar terdengar metalik, atau cello terdengar kurus. Itu yang dimaksud timbre tidak natural.</p>
+      <p>Timbre juga bergantung pada <b>pola decay</b> nada, jadi ia irisan tonality dan technicality. <b>Timbre plastik</b> terdengar hampa dan tanpa bobot: decay terlalu cepat dan tonality terang. <b>Timbre metalik</b> berasal dari decay yang berdenyut atau puncak treble yang salah tempat. Dengarkan polanya di <a href="#punch">lab transient</a>.</p>
       <p>Geser batang harmonik di panel, atau pilih preset. Lalu nyalakan puncak respons dan lihat harmonik mana yang ikut terangkat.</p>
     </div>
     <div class="lab">
@@ -490,26 +183,30 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding-block:24px;color
 <div class="cat" id="technicality">
   <p class="eyebrow">Kategori 2</p>
   <h2 class="cat-t">Technicality</h2>
-  <p class="lead"><b>Technicality</b> adalah kemampuan teknis headset: seberapa cepat, bersih, luas, dan rapi ia menyampaikan suara, terlepas dari warna nadanya. Bagian ini juga memuat perangkat keras dan fitur yang melatarbelakanginya: driver, tipe cup, koherensi, dan koneksi.</p>
-  <div class="terms"><a href="#punch">Punch</a><a href="#ruang">Soundstage</a><a href="#ruang">Separation</a><a href="#ruang">Imaging</a><a href="#bukatutup">Open-back</a><a href="#bukatutup">Closed-back</a><a href="#driver">Driver</a><a href="#koheren">Koheren</a><a href="#multipoint">Multipoint</a></div>
+  <p class="lead"><b>Technicality</b> adalah semua aspek non-tonal: <b>resolusi</b> (detail), <b>transient</b> (attack dan decay), dan <b>imaging</b> (akurasi posisi dan soundstage). Aspek ini sulit diukur, tetapi arahnya jelas: makin tinggi resolusi, makin cepat, dan makin akurat posisi, makin bagus. Bagian ini juga memuat perangkat keras dan fitur di baliknya: driver, tipe cup, koherensi, dan koneksi.</p>
+  <div class="terms"><a href="#punch">Transient</a><a href="#punch">Punch</a><a href="#ruang">Imaging</a><a href="#ruang">Soundstage</a><a href="#ruang">Separation</a><a href="#bukatutup">Open/closed</a><a href="#driver">Driver</a><a href="#koheren">Koheren</a><a href="#multipoint">Multipoint</a></div>
+  <p class="hint">Catatan: kerangka technicality di sini mengikuti sistem evaluasi IEF dari Crinacle. Penulisnya sendiri menyebutnya pengamatan pribadi yang belum diteliti secara ilmiah, dan istilah attack serta decay dipakai lebih longgar daripada di dunia synthesizer. Sebagian ahli tidak sepakat, jadi anggap ini kerangka untuk belajar mendengar, bukan hukum.</p>
 </div>
 
 <!-- ===== PUNCH ===== -->
 <section class="sec" id="punch">
   <div class="sec-head">
     <p class="eyebrow">Technicality</p>
-    <h2>Punch</h2>
+    <h2>Punch dan transient</h2>
   </div>
   <div class="split">
     <div class="prose">
-      <p><b>Punch adalah dentuman yang terasa memukul dada.</b> Ia lahir dari dua hal sekaligus: <b>serangan awal (transient)</b> yang cepat dan <b>peluruhan bass</b> yang berhenti dengan cepat. Jadi punch bukan soal jumlah bass.</p>
+      <p><b>Transient</b> adalah pola sebuah nada: <b>attack</b> (seberapa lama titik awal nada diseret) dan <b>decay</b> (seberapa lama nada melingkar sesudahnya). Di lingkaran audio ini sering disebut kecepatan driver.</p>
       <ul>
-        <li><b>Punchy</b>: klik awal tegas, bass berhenti rapat.</li>
-        <li><b>Boomy</b>: bass banyak tetapi lama menggantung, menutupi not lain.</li>
-        <li><b>Lembek</b>: serangan awal lambat atau hilang, jadi kick terasa seperti "wuuf" tanpa pukulan.</li>
+        <li><b>Attack</b>: makin singkat makin baik. Attack panjang terdengar tumpul, petikan senar teredam dan perkusi seperti memukul bantal.</li>
+        <li><b>Decay</b>: butuh keseimbangan. Terlalu panjang, nada saling menempel dan jadi muddy. Terlalu pendek, nada sangat terdefinisi tetapi tidak natural, seolah hilang sebelum sempat berbunyi. Di dunia nyata tidak ada nada tanpa decay.</li>
+        <li><b>Punch</b> adalah transient pada bass: serangan awal tegas dan bass cepat berhenti. Bukan soal jumlah bass.</li>
+        <li><b>Tekstur</b> datang dari bentuk attack dan panjang decay. Decay cukup panjang terasa halus, decay pendek terasa bertekstur, dan berlebihan jadi berbutir.</li>
       </ul>
-      <p>Pada perangkat nyata, punch dipengaruhi kecepatan driver, damping, dan seal. IEM dengan seal bocor kehilangan bass sekaligus kehilangan rasa pukulannya.</p>
+      <p>Pada perangkat nyata, kecepatan ini dipengaruhi driver, damping, dan seal. IEM dengan seal bocor kehilangan bass sekaligus rasa pukulannya.</p>
+      <p class="hint">Istilah attack dan decay di sini mengikuti pemakaian IEF (Crinacle), yang lebih longgar daripada istilah ADSR di dunia synthesizer.</p>
     </div>
+    <div class="labstack">
     <div class="lab">
       <p class="lab-t">Lab punch, bentuk gelombang kick</p>
       <canvas id="cvKick" class="plot s" role="img" aria-label="Bentuk gelombang kick drum"></canvas>
@@ -521,6 +218,20 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding-block:24px;color
       </div>
       <div class="chips"><button class="btn primary" id="kickHit">Mainkan sekali</button><button class="btn" id="kickLoop" aria-pressed="false">Putar pola drum</button></div>
       <p class="hint">Bandingkan preset Punchy dengan Boomy. Nada bassnya hampir sama, bedanya peluruhan dan serangan awal.</p>
+    </div>
+    <div class="lab">
+      <p class="lab-t">Lab transient, tiga nada beruntun</p>
+      <canvas id="cvTr" class="plot s" role="img" aria-label="Bentuk gelombang tiga nada beruntun"></canvas>
+      <div class="chips" id="trPresets" role="group" aria-label="Preset transient"></div>
+      <p class="tr-note" id="trNote"></p>
+      <div class="grid3">
+        <div class="field"><label for="trA">Panjang attack <output id="trAO"></output></label><input type="range" id="trA" min="0" max="40" value="1"></div>
+        <div class="field"><label for="trD">Decay <output id="trDO"></output></label><input type="range" id="trD" min="30" max="700" step="10" value="200"></div>
+        <div class="field"><label for="trR">Denyut decay <output id="trRO"></output></label><input type="range" id="trR" min="0" max="100" value="0"></div>
+      </div>
+      <div class="chips"><button class="btn primary" id="trPlay">Mainkan tiga nada</button><button class="btn" id="trLoop" aria-pressed="false">Ulangi</button></div>
+      <p class="hint">Bandingkan Tajam dengan Attack tumpul, lalu dengan Decay terlalu panjang. Perhatikan apakah tiap nada masih terpisah.</p>
+    </div>
     </div>
   </div>
 </section>
@@ -539,14 +250,14 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding-block:24px;color
         <tbody>
           <tr><td>Soundstage</td><td>Seberapa lebar dan dalam ruang yang terbentuk? Ada kesan jarak dan udara, atau semuanya menempel di dalam kepala?</td></tr>
           <tr><td>Separation</td><td>Apakah gitar, vokal, dan bass tetap terdengar sebagai lapisan terpisah ketika bermain bersamaan?</td></tr>
-          <tr><td>Imaging</td><td>Seberapa tepat posisi tiap sumber? Bisa ditunjuk, atau kabur?</td></tr>
+          <tr><td>Imaging</td><td>Payung untuk <b>akurasi posisi</b> (seberapa tepat tiap sumber bisa ditunjuk) dan soundstage (ukuran ruang).</td></tr>
         </tbody></table></div>
       <p style="margin-top:1em">Panggung lebar tetapi separation buruk terdengar luas namun berantakan. Panggung sempit dengan separation baik terdengar intim dan rapi. Keduanya bisa dicari terpisah.</p>
-      <p>Di dunia nyata, separation ditentukan distorsi rendah, transient cepat, dan tuning yang tidak menumpuk di low-mid. Soundstage dipengaruhi desain cup (open-back cenderung lebih lega), respons di sekitar 2–5 kHz, dan rekaman itu sendiri.</p>
+      <p>Di dunia nyata, separation sangat berkaitan dengan <b>transient</b>: decay yang panjang membuat nada saling menempel sehingga lapisan sulit dibedakan. Tuning yang menumpuk di low-mid juga merusaknya. Soundstage dipengaruhi desain cup (open-back cenderung lebih lega), respons di sekitar 2–5 kHz, dan rekaman itu sendiri.</p>
       <p class="hint">Di sini disimulasikan dengan panning, reverb, dan penumpukan frekuensi. Ini pendekatan untuk belajar, bukan ukuran produk nyata.</p>
     </div>
     <div class="lab">
-      <p class="lab-t">Lab ruang, tampak atas</p>
+      <p class="lab-t">Lab ruang, tampak atas, lagu sintetis</p>
       <svg id="stageMap" class="stage-svg" viewBox="0 0 400 250" role="img" aria-label="Denah posisi instrumen di sekitar kepala pendengar"></svg>
       <div class="chips" id="stagePresets" role="group" aria-label="Preset ruang"></div>
       <div class="field"><label for="stW">Lebar panggung <output id="stWO"></output></label><input type="range" id="stW" min="0" max="100" value="70"></div>
@@ -712,9 +423,11 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding-block:24px;color
   </div>
   <div class="split">
     <div class="faqs">
-    <details class="faq" open><summary>Apa bedanya perangkat murah dan mahal?</summary><div class="faq-a">Perbedaan paling nyata ada di <b>technicality</b>: <b>distorsi lebih rendah</b>, bass lebih terkendali, <b>separation</b> dan detail lebih baik, serta driver yang lebih <b>koheren</b>. Warna suara (<b>tonality</b>) justru lebih ditentukan tuning, dan perangkat murah yang di-tuning baik bisa terdengar enak.</div></details>
+    <details class="faq" open><summary>Apa bedanya perangkat murah dan mahal?</summary><div class="faq-a">Perbedaan paling konsisten ada di <b>technicality</b>: <b>transient</b> yang lebih bersih (attack tajam, decay terkendali), <b>resolusi</b> dan <b>separation</b> yang lebih baik, akurasi posisi, serta driver yang lebih <b>koheren</b>. Warna suara (<b>tonality</b>) lebih ditentukan tuning, dan perangkat murah yang di-tuning baik bisa terdengar enak.</div></details>
     <details class="faq"><summary>Apakah yang mahal pasti lebih bagus?</summary><div class="faq-a">Tidak. Peningkatan terbesar biasanya terjadi dari perangkat <b>sangat murah ke kelas menengah</b>. Setelah itu tiap tambahan harga memberi perbaikan yang makin kecil. Selera juga berperan: sebagian orang justru lebih suka tuning perangkat yang lebih murah.</div></details>
-    <details class="faq"><summary>Apa yang benar-benar bisa saya dengar?</summary><div class="faq-a"><ul><li><b>Distorsi</b> saat volume tinggi: suara jadi kasar atau pecah.</li><li><b>Kontrol bass</b>: berhenti rapat (punchy), bukan menggantung (boomy).</li><li><b>Separation</b> pada lagu ramai.</li><li><b>Treble halus</b> tanpa piercing atau sibilance.</li><li><b>Konsistensi kiri dan kanan</b> pada satu unit.</li></ul></div></details>
+    <details class="faq"><summary>Apa yang benar-benar bisa saya dengar?</summary><div class="faq-a"><ul><li><b>Transient</b>: nada terpisah rapi atau saling menempel dan tumpul.</li><li><b>Kontrol bass</b>: berhenti rapat (punchy), bukan menggantung (boomy).</li><li><b>Separation</b> pada lagu ramai.</li><li><b>Treble halus</b> tanpa piercing atau sibilance.</li><li><b>Konsistensi kiri dan kanan</b> pada satu unit.</li></ul></div></details>
+    <details class="faq"><summary>Apakah angka distorsi (THD) menentukan kualitas?</summary><div class="faq-a">Umumnya <b>tidak</b>. Distorsi harmonik IEM dan headphone biasanya di bawah 1% dan didominasi orde dua dan tiga di bawah 1 kHz, yang sebagian besar ditutupi oleh <b>auditory masking</b>. Penelitian yang dikutip Crinacle menemukan angka THD tidak bisa memprediksi preferensi pendengar. Tidak semua sependapat: sebagian orang menduga spektrum distorsi (misalnya orde tiga pada BA) ikut membentuk timbre plastik. Anggap ini perdebatan yang belum selesai.</div></details>
+    <details class="faq"><summary>Kalau tuning-nya aneh, apakah itu cuma selera?</summary><div class="faq-a">Selera memang bebas: V-shape, bassy, terang, atau hangat sah semua. Tetapi ada batasnya. Yang dinilai adalah <b>seberapa baik tanda suara yang dituju dijalankan</b>. V-shape yang rapi berbeda dari V-shape yang berlebihan sampai terdengar buruk.</div></details>
     <details class="faq"><summary>Apa yang sering dikira beda, padahal bukan?</summary><div class="faq-a"><b>Volume maksimum</b> dan <b>jumlah bass</b> bukan ukuran kualitas. Perangkat murah sering dibuat V-shape supaya terdengar seru dalam sekali dengar, tetapi cepat melelahkan. Dengarkan 30 menit sebelum menilai.</div></details>
     <details class="faq"><summary>Apakah lebih banyak driver berarti lebih bagus?</summary><div class="faq-a">Tidak otomatis. Lebih banyak driver butuh crossover yang lebih rumit, dan itu rawan masalah <b>koherensi</b>. IEM satu DD yang di-tuning baik bisa terdengar lebih natural daripada IEM banyak driver yang sambungannya tidak mulus. Lihat bagian <a href="#koheren">Koheren</a>.</div></details>
     <details class="faq"><summary>Apakah perlu DAC atau amplifier mahal?</summary><div class="faq-a">Untuk kebanyakan IEM dan headphone, <b>dongle DAC murah sudah cukup</b>. Yang penting outputnya bersih dan bertenaga cukup. Headphone berimpedansi tinggi butuh daya lebih besar, dan IEM yang sangat sensitif bisa menangkap desis dari sumber yang berisik. Jangan beli amp sebelum tahu perangkatmu memerlukannya.</div></details>
@@ -727,7 +440,7 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding-block:24px;color
       <div class="tw"><table>
         <thead><tr><th>Aspek</th><th>Murah</th><th>Mahal</th></tr></thead>
         <tbody>
-          <tr><td>Distorsi</td><td>Lebih tinggi, terutama di volume besar</td><td>Rendah dan stabil</td></tr>
+          <tr><td>Transient</td><td>Cenderung tumpul atau sesak</td><td>Lebih bersih dan terkendali</td></tr>
           <tr><td>Kontrol bass</td><td>Cenderung menggantung</td><td>Cenderung rapat</td></tr>
           <tr><td>Detail dan separation</td><td>Mudah bercampur</td><td>Lapisan lebih jelas</td></tr>
           <tr><td>Tuning</td><td>Sering V-shape agar langsung terasa seru</td><td>Lebih seimbang, tetapi tetap soal selera</td></tr>
@@ -797,19 +510,20 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding-block:24px;color
   <div class="sec-head">
     <p class="eyebrow">Ringkasan</p>
     <h2>Semua istilah dalam satu tabel</h2>
-    <p class="lead">Dikelompokkan menjadi <b>Tonality</b> dan <b>Technicality</b>. Detail dan clarity dibahas di peta frekuensi, tetapi termasuk technicality karena ditentukan distorsi dan kecepatan driver, bukan hanya treble.</p>
+    <p class="lead">Dikelompokkan menjadi <b>Tonality</b>, <b>Technicality</b>, dan <b>Irisan</b> (timbre, hangat, tekstur, yang dipengaruhi keduanya). Detail dan clarity dibahas di peta frekuensi, tetapi termasuk technicality karena ditentukan distorsi dan kecepatan driver, bukan hanya treble.</p>
   </div>
   <div class="field" style="max-width:420px;margin-bottom:14px"><label for="glSearch">Cari istilah</label><input type="search" id="glSearch" placeholder="Misalnya: sibilance atau 4 kHz"></div>
   <div class="tw"><table id="glTable"><thead><tr><th>Istilah</th><th>Kategori</th><th>Artinya</th><th>Zona</th><th>Coba di</th></tr></thead><tbody></tbody></table></div>
 </section>
 <div class="stepfoot" id="stepFoot"></div>
-<footer>Semua demo disintesis dengan Web Audio API dan bersifat pendekatan untuk belajar. Respons telinga, bentuk kanal, dan perangkat tiap orang berbeda, jadi percayai telingamu sendiri dan jaga volume tetap aman.</footer>
+<footer><span class="song-credit" hidden>Lagu demo: “Two-Timing Lady” oleh Dazie Mae, berlisensi <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/us/" target="_blank" rel="noopener">CC BY-NC-SA 3.0 US</a>. Dipakai tanpa diubah, untuk tujuan non-komersial. </span>Kerangka tonality dan technicality dirangkum dengan kata-kata sendiri dari <a href="https://crinacle.com/2021/06/04/the-tonal-technical-dichotomy-the-ief-evaluation-system/" target="_blank" rel="noopener">“The Tonal-Technical Dichotomy”</a> oleh Crinacle (In-Ear Fidelity, 2021). Efek dan simulasi memakai Web Audio API dan bersifat pendekatan untuk belajar. Respons telinga, bentuk kanal, dan perangkat tiap orang berbeda, jadi percayai telingamu sendiri dan jaga volume tetap aman.</footer>
 </main>
 
 <div class="transport" role="region" aria-label="Pemutar lagu demo">
   <div class="tp-in">
     <button class="btn primary" id="tPlay" aria-pressed="false">Putar lagu demo</button>
     <label class="vol" for="tVol">VOL <input type="range" id="tVol" min="0" max="100" value="35"></label>
+    <div class="seek" id="seekBox" hidden><input type="range" id="tSeek" min="0" max="1000" value="0" aria-label="Posisi lagu"><span id="tTime"></span></div>
     <div class="mutes" role="group" aria-label="Lapisan lagu">
       <button class="chip" data-mute="vox" aria-pressed="true">Vokal</button>
       <button class="chip" data-mute="drums" aria-pressed="true">Drum</button>
@@ -823,1144 +537,14 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding-block:24px;color
   </div>
 </div>
 
-<script>
-'use strict';
-/* ================= helpers ================= */
-const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
-const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-const lerp=(a,b,t)=>a+(b-a)*t;
-const dB=x=>Math.pow(10,x/20);
-const fmt=(v,d=1)=>v.toFixed(d).replace('.',',');
-const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-function chipRow(el,items,onPick){
-  el.innerHTML='';
-  items.forEach(([k,label])=>{const b=document.createElement('button');b.className='chip';b.dataset.k=k;b.textContent=label;b.setAttribute('aria-pressed','false');b.addEventListener('click',()=>onPick(k));el.appendChild(b)});
-}
-function markChip(el,key){$$('.chip',el).forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===String(key))))}
-
-/* theme */
-const theme={};
-function readTheme(){
-  const s=getComputedStyle(document.documentElement),g=n=>s.getPropertyValue(n).trim();
-  theme.bg=g('--bg');theme.panel=g('--panel');theme.ink=g('--ink');theme.ink2=g('--ink2');theme.line=g('--line');theme.shade=g('--shade');
-  theme.accent=g('--accent');theme.accentSoft=g('--accent-soft');theme.signal=g('--signal');theme.signalSoft=g('--signal-soft');
-}
-const redrawers=[];
-function onTheme(){readTheme();redrawers.forEach(f=>f())}
-readTheme();
-new MutationObserver(onTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
-try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',onTheme)}catch(e){}
-function autoCanvas(cv,draw){
-  const f=()=>{const r=cv.getBoundingClientRect();if(r.width<2)return;const d=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(r.width*d);cv.height=Math.round(r.height*d);const c=cv.getContext('2d');c.setTransform(d,0,0,d,0,0);c.clearRect(0,0,r.width,r.height);draw(c,r.width,r.height)};
-  new ResizeObserver(f).observe(cv);redrawers.push(f);return f;
-}
-
-/* ================= state ================= */
-const DEF=()=>({eq:Array(9).fill(0),width:.7,depth:.25,sep:1,enc:'none',noise:0,xo:{on:false,delay:0,pol:false,hi:0}});
-const P=Object.assign(DEF(),{vol:.35,owner:null,mute:{vox:false,drums:false,bass:false,pad:false}});
-const MODES={eq:'Peta karakter suara',stage:'Soundstage dan separation',enc:'Open / closed-back',xo:'Koheren driver'};
-const EQ_BANDS=[
-  {f:60,type:'lowshelf',q:.7,label:'60'},{f:150,type:'peaking',q:1,label:'150'},{f:300,type:'peaking',q:1.1,label:'300'},
-  {f:600,type:'peaking',q:1.2,label:'600'},{f:1200,type:'peaking',q:1,label:'1,2k'},{f:2800,type:'peaking',q:1.3,label:'2,8k'},
-  {f:5000,type:'peaking',q:1.6,label:'5k'},{f:7500,type:'peaking',q:2,label:'7,5k'},{f:12000,type:'highshelf',q:.7,label:'12k'}
-];
-const BUS=[
-  {n:'vox',pan:0,send:.5},{n:'kick',pan:0,send:0},{n:'snare',pan:.18,send:.6},{n:'hat',pan:.6,send:.35},
-  {n:'bass',pan:-.12,send:0},{n:'padL',pan:-1,send:.9},{n:'padR',pan:1,send:.9}
-];
-const ENC={
-  none:{w:1,dm:1,da:0,bass:0,leak:.4},
-  closed:{w:.7,dm:.6,da:0,bass:3,leak:.06},
-  open:{w:1.25,dm:1,da:.12,bass:-1.5,leak:.75}
-};
-const XO_F=2500, BUTTER_Q=-3.0103; /* Q lowpass/highpass WebAudio dalam dB */
-const MIX={kick:.9,snare:.45,hat:.16,bass:.22,pad:.08,vox:.8,sib:.12};
-
-/* ================= audio core ================= */
-let ctx=null,G=null;
-const busy=new Set();
-const stoppers=new Map();
-function claim(name){stoppers.forEach((fn,k)=>{if(k!==name)fn()})}
-
-const noiseCache=new WeakMap();
-function getNoise(c){let b=noiseCache.get(c);if(!b){b=c.createBuffer(1,c.sampleRate*2,c.sampleRate);const d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;noiseCache.set(c,b)}return b}
-function makeIR(c,sec=1.8){
-  const n=Math.floor(c.sampleRate*sec),b=c.createBuffer(2,n,c.sampleRate);
-  for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);let lp=0;for(let i=0;i<n;i++){const t=i/n,env=Math.pow(1-t,3.2),k=lerp(.65,.12,t);lp+=k*((Math.random()*2-1)-lp);d[i]=lp*env*(i<c.sampleRate*.012?0:1)}}
-  return b;
-}
-function buildGraph(c){
-  const g={};
-  g.master=c.createGain();
-  g.lim=c.createDynamicsCompressor();g.lim.threshold.value=-8;g.lim.knee.value=6;g.lim.ratio.value=14;g.lim.attack.value=.003;g.lim.release.value=.12;
-  g.an=c.createAnalyser();g.an.fftSize=4096;g.an.smoothingTimeConstant=.8;
-  g.master.connect(g.lim);g.lim.connect(g.an);g.an.connect(c.destination);
-  g.util=c.createGain();g.util.connect(g.master);
-  g.noiseOut=c.createGain();g.noiseOut.gain.value=0;g.noiseOut.connect(g.master);
-  g.enc=c.createBiquadFilter();g.enc.type='lowshelf';g.enc.frequency.value=110;g.enc.connect(g.master);
-  g.trim=c.createGain();g.trim.connect(g.enc);
-  g.eq=EQ_BANDS.map(b=>{const f=c.createBiquadFilter();f.type=b.type;f.frequency.value=b.f;f.Q.value=b.q;f.gain.value=0;return f});
-  g.eq.forEach((f,i)=>f.connect(i<g.eq.length-1?g.eq[i+1]:g.trim));
-  g.xin=c.createGain();
-  g.byp=c.createGain();g.xin.connect(g.byp);g.byp.connect(g.eq[0]);
-  g.xsum=c.createGain();g.xsum.connect(g.eq[0]);
-  const bw=type=>{const f=c.createBiquadFilter();f.type=type;f.frequency.value=XO_F;f.Q.value=BUTTER_Q;return f};
-  const l1=bw('lowpass'),l2=bw('lowpass'),h1=bw('highpass'),h2=bw('highpass');
-  g.lo=c.createGain();g.lo.gain.value=0;g.xin.connect(l1);l1.connect(l2);l2.connect(g.lo);g.lo.connect(g.xsum);
-  g.hdel=c.createDelay(.02);g.pol=c.createGain();g.hi=c.createGain();g.hi.gain.value=0;
-  g.xin.connect(h1);h1.connect(h2);h2.connect(g.hdel);g.hdel.connect(g.pol);g.pol.connect(g.hi);g.hi.connect(g.xsum);
-  g.rev=c.createConvolver();g.rev.buffer=makeIR(c);g.rev.connect(g.xin);
-  g.pres=c.createBiquadFilter();g.pres.type='peaking';g.pres.frequency.value=2600;g.pres.Q.value=1;g.pres.gain.value=0;
-  BUS.forEach(b=>{
-    const inn=c.createGain(),p=c.createStereoPanner(),s=c.createGain();
-    p.pan.value=b.pan;s.gain.value=0;
-    if(b.n==='vox'){inn.connect(g.pres);g.pres.connect(p)}else inn.connect(p);
-    p.connect(g.xin);p.connect(s);s.connect(g.rev);
-    g[b.n]={in:inn,pan:p,send:s};
-  });
-  /* kebisingan ruangan: dengung + obrolan samar */
-  const bb=c.createBuffer(1,c.sampleRate*2,c.sampleRate),bd=bb.getChannelData(0);let last=0;
-  for(let i=0;i<bd.length;i++){last=(last+.02*(Math.random()*2-1))/1.02;bd[i]=last*3.5}
-  const rs=c.createBufferSource();rs.buffer=bb;rs.loop=true;
-  const rl=c.createBiquadFilter();rl.type='lowpass';rl.frequency.value=320;rs.connect(rl);rl.connect(g.noiseOut);rs.start();
-  const cs=c.createBufferSource();cs.buffer=getNoise(c);cs.loop=true;
-  const cb=c.createBiquadFilter();cb.type='bandpass';cb.frequency.value=1100;cb.Q.value=.6;
-  const cg=c.createGain();cg.gain.value=.12;
-  const lfo=c.createOscillator();lfo.frequency.value=3.4;const ld=c.createGain();ld.gain.value=.1;lfo.connect(ld);ld.connect(cg.gain);
-  cs.connect(cb);cb.connect(cg);cg.connect(g.noiseOut);cs.start();lfo.start();
-  return g;
-}
-function ensureAudio(){
-  if(!ctx){
-    const AC=window.AudioContext||window.webkitAudioContext;
-    ctx=new AC({latencyHint:'interactive'});
-    G=buildGraph(ctx);
-    applyParams();
-  }
-  if(ctx.state!=='running')ctx.resume();
-  return ctx;
-}
-function stageEff(){
-  const e=ENC[P.enc];
-  return {spread:clamp(P.width*e.w,0,1)*lerp(.1,1,P.sep),depth:clamp(P.depth*e.dm+e.da,0,1)};
-}
-function applyParams(){
-  if(!G||!ctx)return;
-  const t=ctx.currentTime,e=ENC[P.enc],st=stageEff(),m=P.mute,x=P.xo;
-  P.eq.forEach((v,i)=>G.eq[i].gain.setTargetAtTime(v,t,.03));
-  G.trim.gain.setTargetAtTime(dB(-.7*Math.max(0,...P.eq)),t,.03);
-  G.master.gain.setTargetAtTime(P.vol*P.vol*1.5,t,.03);
-  const pad=m.pad?0:lerp(1.9,1,P.sep);
-  const lv={vox:m.vox?0:1,kick:m.drums?0:1,snare:m.drums?0:1,hat:m.drums?0:1,bass:m.bass?0:1,padL:pad,padR:pad};
-  BUS.forEach(b=>{const n=G[b.n];n.in.gain.setTargetAtTime(lv[b.n],t,.03);n.pan.pan.setTargetAtTime(clamp(b.pan*st.spread,-1,1),t,.05);n.send.gain.setTargetAtTime(b.send*st.depth*1.6,t,.05)});
-  G.pres.gain.setTargetAtTime(lerp(-5,0,P.sep),t,.05);
-  G.enc.gain.setTargetAtTime(e.bass,t,.05);
-  G.noiseOut.gain.setTargetAtTime(playing()?P.noise*e.leak*.3:0,t,.05);
-  G.byp.gain.setTargetAtTime(x.on?0:1,t,.02);G.lo.gain.setTargetAtTime(x.on?1:0,t,.02);
-  G.hi.gain.setTargetAtTime(x.on?dB(x.hi):0,t,.02);
-  G.pol.gain.setTargetAtTime(x.pol?-1:1,t,.02);
-  G.hdel.delayTime.setTargetAtTime(x.delay/1000,t,.02);
-}
-
-/* ---- synth voices ---- */
-function noiseBurst(c,out,t,dur,filt,gain,atk=.002){
-  const s=c.createBufferSource();s.buffer=getNoise(c);
-  const f=c.createBiquadFilter();f.type=filt.type;f.frequency.value=filt.f;if(filt.q!=null)f.Q.value=filt.q;
-  const g=c.createGain();g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(gain,t+atk);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-  s.connect(f);f.connect(g);g.connect(out);s.start(t,Math.random()*1.5);s.stop(t+dur+.02);
-}
-const KDEF={f:55,decay:.14,click:.85};
-function kickVoice(c,out,t,p,v){
-  p=p||KDEF;
-  const a=.002+(1-p.click)*.014;
-  const o=c.createOscillator();o.type='sine';
-  o.frequency.setValueAtTime(p.f*2.6,t);o.frequency.exponentialRampToValueAtTime(p.f,t+.045);
-  const g=c.createGain();g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+a);g.gain.exponentialRampToValueAtTime(.001,t+a+p.decay);
-  o.connect(g);g.connect(out);o.start(t);o.stop(t+a+p.decay+.05);
-  if(p.click>.02)noiseBurst(c,out,t,.012,{type:'bandpass',f:3200,q:.9},v*.55*p.click,.0008);
-}
-function hitSnare(c,out,t,v){
-  noiseBurst(c,out,t,.17,{type:'bandpass',f:1900,q:.8},v,.002);
-  const o=c.createOscillator();o.type='triangle';o.frequency.setValueAtTime(210,t);o.frequency.exponentialRampToValueAtTime(150,t+.08);
-  const g=c.createGain();g.gain.setValueAtTime(v*.7,t);g.gain.exponentialRampToValueAtTime(.001,t+.11);o.connect(g);g.connect(out);o.start(t);o.stop(t+.13);
-}
-function hitHat(c,out,t,dur,v){noiseBurst(c,out,t,dur,{type:'highpass',f:7000,q:.7},v,.001)}
-function hitBass(c,out,t,f,dur,v){
-  const o=c.createOscillator();o.type='sawtooth';o.frequency.value=f;
-  const o2=c.createOscillator();o2.type='sine';o2.frequency.value=f;
-  const lp=c.createBiquadFilter();lp.type='lowpass';lp.Q.value=2;lp.frequency.setValueAtTime(f*7,t);lp.frequency.exponentialRampToValueAtTime(f*2.2,t+dur);
-  const g=c.createGain();g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.012);g.gain.setValueAtTime(v,t+Math.max(.02,dur-.05));g.gain.linearRampToValueAtTime(.0001,t+dur+.04);
-  const sg=c.createGain();sg.gain.value=.5;o.connect(lp);lp.connect(g);o2.connect(sg);sg.connect(g);g.connect(out);
-  o.start(t);o2.start(t);o.stop(t+dur+.1);o2.stop(t+dur+.1);
-}
-function padVoice(c,out,t,f,dur,v){
-  const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1500;lp.Q.value=.5;
-  const g=c.createGain();g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.25);g.gain.setValueAtTime(v,t+dur-.35);g.gain.linearRampToValueAtTime(.0001,t+dur);
-  [-7,7].forEach(d=>{const o=c.createOscillator();o.type='sawtooth';o.frequency.value=f;o.detune.value=d;o.connect(lp);o.start(t);o.stop(t+dur+.05)});
-  lp.connect(g);g.connect(out);
-}
-const VOWELS={a:[730,1090,2440],e:[530,1840,2480],i:[270,2290,3010],o:[570,840,2410],u:[300,870,2240]};
-function voiceNote(c,dest,t,dur,f,vowel,g,fs){
-  fs=fs||1;
-  const F=VOWELS[vowel];
-  const o=c.createOscillator();o.type='sawtooth';o.frequency.setValueAtTime(f,t);
-  const lfo=c.createOscillator();lfo.frequency.value=5.3;
-  const lg=c.createGain();lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(f*.011,t+Math.min(.4,dur));lfo.connect(lg);lg.connect(o.frequency);
-  const env=c.createGain();env.gain.setValueAtTime(.0001,t);env.gain.linearRampToValueAtTime(g,t+.05);env.gain.setValueAtTime(g,t+Math.max(.06,dur-.07));env.gain.linearRampToValueAtTime(.0001,t+dur+.04);
-  const q=[7,9,12],gs=[1,.55,.3];
-  F.forEach((fr,i)=>{const bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=fr*fs;bp.Q.value=q[i];const gg=c.createGain();gg.gain.value=gs[i];o.connect(bp);bp.connect(gg);gg.connect(env)});
-  const lo=c.createBiquadFilter();lo.type='lowpass';lo.frequency.value=420;const lgn=c.createGain();lgn.gain.value=.35;o.connect(lo);lo.connect(lgn);lgn.connect(env);
-  env.connect(dest);
-  o.start(t);lfo.start(t);const end=t+dur+.1;o.stop(end);lfo.stop(end);
-  return {kill(tt){env.gain.cancelScheduledValues(tt);env.gain.setTargetAtTime(.0001,tt,.015);try{o.stop(tt+.12);lfo.stop(tt+.12)}catch(e){}}};
-}
-function sBurst(c,dest,t,dur,g){noiseBurst(c,dest,t,dur,{type:'bandpass',f:6800,q:.8},g,.02)}
-
-/* ---- lagu demo ---- */
-const STEP=60/92/4;
-const CHORDS=[[220,261.63,329.63],[174.61,220,261.63],[261.63,329.63,392],[196,246.94,293.66]];
-const ROOTS=[55,43.65,65.41,49];
-const BASSP=[[0,2.5,1],[3,1.5,1],[6,2,2],[10,2.5,1],[13,2,1.5]];
-const MELODY=[
-  [[0,6,329.63,'a'],[6,2,293.66,'o'],[8,4,261.63,'a'],[12,4,293.66,'e',1]],
-  [[0,4,261.63,'a'],[4,4,349.23,'e'],[8,6,329.63,'i'],[14,2,293.66,'e',1]],
-  [[0,6,392,'o'],[6,2,329.63,'a'],[8,4,329.63,'e'],[12,4,261.63,'u']],
-  [[0,4,293.66,'a'],[4,4,392,'i'],[8,6,293.66,'o'],[14,2,246.94,'a',1]]
-];
-function scheduleStep(c,D,step,t){
-  const bar=Math.floor(step/16)%4,s=step%16;
-  if(s===0||s===6||s===10||(s===14&&bar%2===1))kickVoice(c,D.kick,t,KDEF,MIX.kick);
-  if(s===4||s===12)hitSnare(c,D.snare,t,MIX.snare);
-  if(s%2===0)hitHat(c,D.hat,t,s===14?.22:.045,MIX.hat*(s%4===0?1:.6));
-  BASSP.forEach(([st,len,mul])=>{if(st===s)hitBass(c,D.bass,t,ROOTS[bar]*mul,len*STEP,MIX.bass)});
-  if(s===0)CHORDS[bar].forEach((f,i)=>padVoice(c,i%2?D.padR:D.padL,t,f,16*STEP,MIX.pad));
-  MELODY[bar].forEach(n=>{if(n[0]===s){voiceNote(c,D.vox,t,n[1]*STEP*.94,n[2],n[3],MIX.vox);if(n[4])sBurst(c,D.vox,t+n[1]*STEP*.9,.14,MIX.sib)}});
-}
-function makeRun(kind){
-  const out={};const nodes=[];
-  if(kind==='track'){BUS.forEach(b=>{const n=ctx.createGain();n.connect(G[b.n].in);out[b.n]=n;nodes.push(n)})}
-  else{const u=ctx.createGain();u.connect(G.util);['kick','snare','hat','bass','padL','padR','vox'].forEach(k=>out[k]=u);nodes.push(u)}
-  return {out,kill(){const t=ctx.currentTime;nodes.forEach(n=>{n.gain.cancelScheduledValues(t);n.gain.setTargetAtTime(0,t,.02)});setTimeout(()=>nodes.forEach(n=>{try{n.disconnect()}catch(e){}}),500)}};
-}
-class Sched{
-  constructor(step,fn,kind,name){this.step=step;this.fn=fn;this.kind=kind;this.name=name;this.on=false}
-  start(){ensureAudio();this.on=true;this.i=0;this.next=ctx.currentTime+.08;this.run=makeRun(this.kind);this.id=setInterval(()=>this.tick(),25);busy.add(this.name)}
-  tick(){while(this.next<ctx.currentTime+.25){this.fn(this.i,this.next,this.run.out);this.next+=this.step;this.i++}}
-  stop(){if(!this.on)return;this.on=false;clearInterval(this.id);this.run.kill();busy.delete(this.name)}
-}
-const Track=new Sched(STEP,(i,t,D)=>scheduleStep(ctx,D,i%64,t),'track','track');
-/* lagu sendiri (vokal asli): file audio dari perangkat, lewat rantai EQ yang sama */
-const Song={buf:null,use:false,on:false,src:null,g:null,name:''};
-const playing=()=>Track.on||Song.on;
-function songStart(){
-  ensureAudio();
-  Song.g=ctx.createGain();Song.g.gain.setValueAtTime(0,ctx.currentTime);Song.g.gain.linearRampToValueAtTime(.5,ctx.currentTime+.08);Song.g.connect(G.xin);
-  Song.src=ctx.createBufferSource();Song.src.buffer=Song.buf;Song.src.loop=true;Song.src.connect(Song.g);Song.src.start();
-  Song.on=true;busy.add('track');
-}
-function songStop(){
-  if(!Song.on)return;Song.on=false;busy.delete('track');
-  const t=ctx.currentTime,s=Song.src,g=Song.g;g.gain.cancelScheduledValues(t);g.gain.setTargetAtTime(0,t,.03);
-  setTimeout(()=>{try{s.stop();s.disconnect();g.disconnect()}catch(e){}},300);
-}
-stoppers.set('track',()=>{Track.stop();songStop();syncTransport()});
-function startTrack(){claim('track');if(Song.use&&Song.buf){if(!Song.on)songStart()}else if(!Track.on)Track.start();syncTransport()}
-function stopTrack(){Track.stop();songStop();syncTransport()}
-
-/* ---- engage / commit ---- */
-function engage(owner){
-  if(P.owner!==owner){
-    const d=DEF();
-    if(owner!=='eq')P.eq=d.eq;
-    if(owner!=='stage'){P.width=d.width;P.depth=d.depth;P.sep=d.sep}
-    if(owner!=='enc'){P.enc='none';P.noise=0}
-    if(owner!=='xo')P.xo=d.xo;
-    P.owner=owner;
-  }
-  if(owner==='stage'&&Song.use){stopTrack();Song.use=false}
-  if(!playing())startTrack();
-}
-function commit(){syncAll();applyParams()}
-function resetAll(){Object.assign(P,DEF(),{owner:null});P.mute={vox:false,drums:false,bass:false,pad:false};commit()}
-
-/* ================= FreqPlot ================= */
-const FREQS=Array.from({length:260},(_,i)=>20*Math.pow(1000,i/259));
-const FREQ_F32=new Float32Array(FREQS);
-const ZONES=[['SUB',20,60],['BASS',60,250],['LOW-MID',250,500],['MID',500,2000],['UPPER-MID',2000,4000],['PRESENCE',4000,6000],['TREBLE',6000,12000],['AIR',12000,20000]];
-const FGRID=[[20,'20'],[50,'50'],[100,'100'],[200,'200'],[500,'500'],[1000,'1k'],[2000,'2k'],[5000,'5k'],[10000,'10k'],[20000,'20k']];
-const plots=[];
-class FreqPlot{
-  constructor(cv,o){
-    this.cv=cv;this.o=Object.assign({range:[-18,18],step:6,axis:true,zones:true,spec:true,hi:[],marks:[],curve:null,hint:'Tekan Putar untuk melihat spektrum langsung'},o);
-    this.vis=true;this.buf=null;plots.push(this);
-    new ResizeObserver(()=>this.resize()).observe(cv);
-    if('IntersectionObserver' in window)new IntersectionObserver(e=>{this.vis=e[0].isIntersecting},{rootMargin:'120px'}).observe(cv);
-    this.resize();
-  }
-  resize(){const r=this.cv.getBoundingClientRect();this.d=Math.min(2,window.devicePixelRatio||1);this.w=r.width;this.h=r.height;this.cv.width=Math.max(1,Math.round(r.width*this.d));this.cv.height=Math.max(1,Math.round(r.height*this.d))}
-  X(f){return this.pl+(Math.log10(f)-1.30103)/3*(this.w-this.pl-this.pr)}
-  draw(){
-    const c=this.cv.getContext('2d'),o=this.o,T=theme,w=this.w,h=this.h;
-    if(w<2)return;
-    c.setTransform(this.d,0,0,this.d,0,0);c.clearRect(0,0,w,h);
-    this.pl=o.axis?36:8;this.pr=10;
-    const top=o.zones?26:8,bot=h-20,[lo,hi]=o.range;
-    const Y=db=>bot-(db-lo)/(hi-lo)*(bot-top);
-    if(o.zones){
-      c.font='500 9px "JetBrains Mono",monospace';c.textAlign='center';c.textBaseline='middle';
-      ZONES.forEach((z,i)=>{const x1=this.X(z[1]),x2=this.X(z[2]);
-        if(i%2===0){c.fillStyle=T.shade;c.fillRect(x1,top,x2-x1,bot-top)}
-        if(c.measureText(z[0]).width+6<x2-x1){c.fillStyle=T.ink2;c.fillText(z[0],(x1+x2)/2,14)}});
-    }
-    o.hi.forEach(([a,b])=>{const x1=this.X(a),x2=this.X(b);c.fillStyle=T.signalSoft;c.fillRect(x1,top,x2-x1,bot-top);c.fillStyle=T.signal;c.fillRect(x1,top,x2-x1,2)});
-    c.strokeStyle=T.line;c.lineWidth=1;c.fillStyle=T.ink2;c.font='500 9.5px "JetBrains Mono",monospace';c.textAlign='center';c.textBaseline='top';
-    FGRID.forEach(([f,l])=>{const x=this.X(f);c.globalAlpha=.7;c.beginPath();c.moveTo(x,top);c.lineTo(x,bot);c.stroke();c.globalAlpha=1;c.fillText(l,clamp(x,14,w-12),bot+5)});
-    if(o.axis){
-      c.textAlign='right';c.textBaseline='middle';
-      for(let db=Math.ceil(lo/o.step)*o.step;db<=hi;db+=o.step){const y=Y(db);c.globalAlpha=db===0?1:.6;c.strokeStyle=db===0?T.ink2:T.line;c.beginPath();c.moveTo(this.pl,y);c.lineTo(w-this.pr,y);c.stroke();c.globalAlpha=1;c.fillText((db>0?'+':'')+db,this.pl-5,y)}
-    }
-    const live=busy.size>0&&ctx&&G&&ctx.state==='running';
-    if(o.spec&&live){
-      const an=G.an,n=an.frequencyBinCount;if(!this.buf||this.buf.length!==n)this.buf=new Float32Array(n);
-      an.getFloatFrequencyData(this.buf);const ny=ctx.sampleRate/2;
-      c.beginPath();c.moveTo(this.pl,bot);
-      for(let x=this.pl;x<=w-this.pr;x+=2){
-        const f1=Math.pow(10,1.30103+3*(x-1-this.pl)/(w-this.pl-this.pr)),f2=Math.pow(10,1.30103+3*(x+1-this.pl)/(w-this.pl-this.pr));
-        let i1=Math.max(0,Math.floor(f1/ny*n)),i2=Math.min(n-1,Math.ceil(f2/ny*n)),m=-120;
-        for(let i=i1;i<=i2;i++)if(this.buf[i]>m)m=this.buf[i];
-        c.lineTo(x,bot-clamp((m+95)/62,0,1)*(bot-top)*.92);
-      }
-      c.lineTo(w-this.pr,bot);c.closePath();c.globalAlpha=.3;c.fillStyle=T.accent;c.fill();c.globalAlpha=1;
-      c.strokeStyle=T.accent;c.lineWidth=1.2;c.stroke();
-    }else if(o.hint){c.fillStyle=T.ink2;c.font='500 11px "JetBrains Mono",monospace';c.textAlign='center';c.textBaseline='middle';c.fillText(o.hint,(this.pl+w-this.pr)/2,(top+bot)/2)}
-    if(o.curve){
-      const cv=o.curve();c.beginPath();
-      for(let i=0;i<cv.length;i++){const x=this.X(FREQS[i]),y=clamp(Y(cv[i]),top,bot);i?c.lineTo(x,y):c.moveTo(x,y)}
-      c.strokeStyle=T.signal;c.lineWidth=2.4;c.lineJoin='round';c.stroke();
-    }
-    o.marks.forEach(mk=>{const x=this.X(mk.f);c.strokeStyle=mk.c||T.ink;c.lineWidth=1.2;c.setLineDash([4,4]);c.beginPath();c.moveTo(x,top);c.lineTo(x,bot);c.stroke();c.setLineDash([]);
-      if(mk.label){c.fillStyle=mk.c||T.ink;c.font='600 10px "JetBrains Mono",monospace';c.textBaseline='top';c.textAlign=x>w-60?'right':'left';c.fillText(mk.label,x+(x>w-60?-4:4),top+3)}});
-    c.strokeStyle=T.line;c.lineWidth=1;c.strokeRect(this.pl,top,w-this.pl-this.pr,bot-top);
-  }
-}
-(function loop(){plots.forEach(p=>{if(p.vis)p.draw()});requestAnimationFrame(loop)})();
-
-/* respons filter bayangan (tanpa perlu audio berjalan) */
-const calc=(()=>{try{return new OfflineAudioContext(1,128,48000)}catch(e){return null}})();
-const shadow=calc?{
-  eq:EQ_BANDS.map(b=>{const f=calc.createBiquadFilter();f.type=b.type;f.frequency.value=b.f;f.Q.value=b.q;return f}),
-  lp:[0,1].map(()=>{const f=calc.createBiquadFilter();f.type='lowpass';f.frequency.value=XO_F;f.Q.value=BUTTER_Q;return f}),
-  hp:[0,1].map(()=>{const f=calc.createBiquadFilter();f.type='highpass';f.frequency.value=XO_F;f.Q.value=BUTTER_Q;return f}),
-  pk:(()=>{const f=calc.createBiquadFilter();f.type='peaking';f.Q.value=2.5;f.gain.value=9;return f})()
-}:null;
-function resp(node,freqs){const m=new Float32Array(freqs.length),p=new Float32Array(freqs.length);node.getFrequencyResponse(freqs,m,p);return {m,p}}
-function eqCurve(){
-  const out=new Float32Array(FREQS.length);if(!shadow)return out;
-  shadow.eq.forEach((f,i)=>{f.gain.value=P.eq[i];const r=resp(f,FREQ_F32);for(let k=0;k<out.length;k++)out[k]+=20*Math.log10(r.m[k])});
-  return out;
-}
-let xoStatic=null;
-function xoCurve(){
-  const n=FREQS.length,out=new Float32Array(n);if(!shadow)return out;
-  if(!xoStatic){const a=shadow.lp.map(f=>resp(f,FREQ_F32)),b=shadow.hp.map(f=>resp(f,FREQ_F32));xoStatic={a,b}}
-  const {a,b}=xoStatic,x=P.xo,g=dB(x.hi)*(x.pol?-1:1),tau=x.delay/1000;
-  for(let k=0;k<n;k++){
-    const ml=a[0].m[k]*a[1].m[k],pl=a[0].p[k]+a[1].p[k],mh=b[0].m[k]*b[1].m[k]*g,ph=b[0].p[k]+b[1].p[k]-2*Math.PI*FREQS[k]*tau;
-    const re=ml*Math.cos(pl)+mh*Math.cos(ph),im=ml*Math.sin(pl)+mh*Math.sin(ph);
-    out[k]=20*Math.log10(Math.max(Math.hypot(re,im),1e-4));
-  }
-  return out;
-}
-
-/* ================= transport ================= */
-const tPlay=$('#tPlay'),heroPlay=$('#heroPlay');
-function togglePlay(){playing()?stopTrack():startTrack()}
-tPlay.addEventListener('click',togglePlay);heroPlay.addEventListener('click',togglePlay);
-$('#tVol').addEventListener('input',e=>{P.vol=e.target.value/100;applyParams()});
-$$('[data-mute]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.mute;P.mute[k]=!P.mute[k];b.setAttribute('aria-pressed',String(!P.mute[k]));applyParams()}));
-$('#tReset').addEventListener('click',resetAll);
-function syncTransport(){
-  const on=playing();
-  [tPlay,heroPlay].forEach(b=>{b.setAttribute('aria-pressed',String(on));b.textContent=on?'Hentikan lagu demo':'Putar lagu demo'});
-  let m=P.owner?'Demo aktif: <b>'+MODES[P.owner]+'</b>':'Pengaturan netral (flat)';
-  $('#tMode').innerHTML=m;
-  $$('.lab-play').forEach(b=>{b.setAttribute('aria-pressed',String(on));b.textContent=on?'Jeda lagu':'Putar lagu'});
-  applyParams();
-  const sb=$('#tSong');
-  sb.textContent=Song.use?'Kembali ke lagu bawaan':Song.buf?'Pakai lagu sendiri: '+Song.name.slice(0,18):'Pakai lagu sendiri';
-  $$('[data-mute]').forEach(b=>b.disabled=Song.use);
-}
-/* tombol putar/jeda di tiap lab yang memakai lagu */
-['#plotEq','#stageMap','#encFig','#plotXo'].forEach(id=>{
-  const lab=$(id).closest('.lab'),b=document.createElement('button');
-  b.className='btn primary lab-play';b.style.justifySelf='start';b.setAttribute('aria-pressed','false');b.textContent='Putar lagu';
-  b.addEventListener('click',togglePlay);
-  const t=$(':scope > .lab-t',lab);lab.insertBefore(b,t?t.nextSibling:lab.firstChild);
-});
-function useSong(v){
-  const was=playing();stopTrack();Song.use=v;
-  if(was||v)startTrack();else syncTransport();
-}
-$('#tSong').addEventListener('click',()=>{
-  if(Song.use)useSong(false);
-  else if(Song.buf)useSong(true);
-  else $('#tFile').click();
-});
-$('#tFile').addEventListener('change',async e=>{
-  const f=e.target.files[0];if(!f)return;
-  try{
-    ensureAudio();
-    Song.buf=await ctx.decodeAudioData(await f.arrayBuffer());Song.name=f.name;useSong(true);
-  }catch(err){$('#tMode').textContent='File tidak bisa dibaca. Coba MP3, WAV, atau M4A lain.'}
-  e.target.value='';
-});
-document.addEventListener('pointerdown',()=>{if(ctx&&ctx.state==='suspended')ctx.resume()},true);
-
-/* ================= PETA ================= */
-const TERMS={
-  flat:{name:'Flat (acuan)',zone:'Tanpa penekanan',eq:[0,0,0,0,0,0,0,0,0],hi:[],
-    def:'<b>Semua daerah frekuensi setara.</b> Ini titik awal untuk membandingkan. Dengarkan satu putaran lagu dulu sebelum mencoba istilah lain.',
-    hear:'Vokal di depan, bass jelas tapi tidak mengganggu, hi-hat tidak tajam.',
-    cause:'Tidak ada headset yang benar-benar flat. Lagu demo ini sengaja dibuat bersih supaya perubahan lain mudah terdengar.'},
-  muddy:{name:'Muddy',zone:'150–400 Hz',eq:[2,4,8,2,0,-2,-2,-2,-3],hi:[[150,400]],
-    def:'Suara terdengar <b>berkabut, seperti ada selimut di atas musik</b>. Bass dan low-mid menumpuk sehingga garis bass, pad, dan badan vokal saling menutupi.',
-    hear:'Fokus pada garis bass dan pad. Ujung tiap not bass tidak jelas, dan lirik vokal lebih sulit ditangkap dibanding Flat.',
-    cause:'Gundukan di 150–400 Hz, bass yang lambat berhenti, ear tips yang menumpuk tekanan bass di kanal telinga, atau cup headset yang bergaung.'},
-  boxy:{name:'Boxy',zone:'400–900 Hz',eq:[0,0,1,8,4,0,0,-1,-1],hi:[[400,900]],
-    def:'Suara <b>seperti keluar dari dalam kotak kardus</b>. Vokal bernada hidung, tertutup, dan kurang udara.',
-    hear:'Vokal menyempit dan terdengar "ho-hong". Pad terdengar sesak di tengah.',
-    cause:'Puncak di 400–900 Hz, resonansi di nozzle atau rumah IEM yang kecil, atau cup tertutup yang kurang diredam.'},
-  shouty:{name:'Shouty',zone:'2–4 kHz',eq:[0,0,0,0,2,8,3,0,0],hi:[[2000,4000]],
-    def:'Vokal dan instrumen mid <b>maju secara agresif, seperti orang berteriak</b>. Awalnya terasa dekat dan jelas, tetapi cepat melelahkan.',
-    hear:'Vokal menusuk ke depan dan terdengar keras walau volume sama. Telinga paling peka di daerah ini, jadi beberapa dB saja sudah terasa.',
-    cause:'Penekanan 2–4 kHz yang berlebihan pada tuning, atau resonansi telinga pemakai yang bertabrakan dengan puncak tuning.'},
-  piercing:{name:'Piercing',zone:'4–7 kHz',eq:[0,0,0,0,0,1,8,4,3],hi:[[4000,7000]],
-    def:'Nada tinggi terasa <b>menusuk atau menyakitkan</b>, terutama snare, cymbal, dan vokal tinggi. Lebih tinggi dan lebih tajam daripada shouty.',
-    hear:'Hi-hat terdengar seperti jarum, snare retak kasar. Setelah beberapa menit telinga ingin istirahat.',
-    cause:'Puncak sempit di 4–7 kHz (resonansi driver atau nozzle), treble yang dibuat agresif demi kesan detail, atau ear tips yang menggeser resonansi.'},
-  sibilance:{name:'Sibilance',zone:'6–9 kHz',eq:[0,0,0,0,0,0,2,10,3],hi:[[6000,9000]],
-    def:'Huruf s, sy, t, dan c pada vokal berubah jadi <b>desis tajam</b>. Sedikit sibilance ada di rekaman, dan headset dengan puncak di 6–9 kHz memperburuknya.',
-    hear:'Tunggu akhir kata pada vokal, saat desis "ssss" muncul. Bandingkan kerasnya dengan Flat. Bagian Vokal di bawah punya pita khusus untuk ini.',
-    cause:'Puncak di 6–9 kHz, atau rekaman yang terlalu terang tanpa de-esser.'},
-  clear:{name:'Detail dan clarity',zone:'3–14 kHz naik',eq:[0,-1,-2,-1,0,2,3,3,5],hi:[[3000,14000]],
-    def:'<b>Detail adalah kemampuan mendengar hal halus</b>: ekor cymbal, napas penyanyi, gesekan senar. <b>Clarity adalah kesan bahwa semuanya terpisah jelas</b>. Menaikkan treble sedikit memberi kesan lebih jernih.',
-    hear:'Ekor hi-hat dan desis napas lebih terdengar. Jika mulai tajam, kamu sudah melewati batas dan masuk ke piercing.',
-    cause:'Detail sejati berasal dari distorsi rendah dan transient cepat. Treble yang dinaikkan hanya membuat kesan detail, bukan detail yang bertambah.'},
-  dull:{name:'Tumpul',zone:'5–20 kHz turun',eq:[1,1,1,0,0,-2,-5,-7,-10],hi:[[5000,20000]],
-    def:'Kebalikan clarity: <b>treble dan udara turun</b> sehingga suara tertutup dan detail halus hilang.',
-    hear:'Hi-hat hanya "tek" pendek, desis vokal hampir hilang, musik terdengar seperti dari balik pintu.',
-    cause:'Roll-off treble pada driver, ear tips yang meredam, atau seal yang bocor sehingga keseimbangan bergeser.'},
-  vshape:{name:'V-shape',zone:'Bass dan treble naik',eq:[5,3,-1,-3,-3,-1,3,4,5],hi:[[20,150],[5000,20000]],
-    def:'<b>Bass dan treble dinaikkan, mid diturunkan.</b> Awalnya seru karena dentuman dan kilau terdengar jelas, tetapi vokal terdorong mundur.',
-    hear:'Kick dan hi-hat menonjol, vokal terdengar lebih jauh dibanding Flat.',
-    cause:'Tuning ala konsumen yang mengejar kesan "wow" pada sekali dengar.'}
-};
-const TERM_ORDER=['flat','muddy','boxy','shouty','piercing','sibilance','clear','dull','vshape'];
-const plotEq=new FreqPlot($('#plotEq'),{range:[-18,18],step:6,curve:eqCurve,hi:[]});
-chipRow($('#termChips'),TERM_ORDER.map(k=>[k,TERMS[k].name]),k=>{engage('eq');P.eq=[...TERMS[k].eq];commit()});
-const eqBank=$('#eqBank');
-EQ_BANDS.forEach((b,i)=>{
-  const col=document.createElement('div');col.className='eqcol';
-  col.innerHTML='<output id="eqo'+i+'">0</output><input class="vs" id="eqs'+i+'" type="range" min="-12" max="12" step="0.5" value="0" orient="vertical" aria-label="Band '+b.label+' Hz"><span>'+b.label+'</span>';
-  eqBank.appendChild(col);
-  $('#eqs'+i).addEventListener('input',e=>{engage('eq');P.eq[i]=+e.target.value;commit()});
-});
-function matchTerm(){return TERM_ORDER.find(k=>TERMS[k].eq.every((v,i)=>v===P.eq[i]))||null}
-function syncPeta(){
-  P.eq.forEach((v,i)=>{const s=$('#eqs'+i);if(+s.value!==v)s.value=v;$('#eqo'+i).textContent=(v>0?'+':'')+String(v).replace('.',',')});
-  const k=matchTerm(),t=k?TERMS[k]:null;
-  markChip($('#termChips'),k);
-  plotEq.o.hi=t?t.hi:[];
-  $('#tdName').textContent=t?t.name:'Kustom';
-  $('#tdZone').textContent=t?t.zone:'Atur sendiri';
-  $('#tdZone').style.display='';
-  $('#tdDef').innerHTML=t?t.def:'Kombinasi pengaturanmu sendiri. Lihat kurva oranye di grafik untuk bentuk responsnya, lalu cocokkan dengan istilah di atas.';
-  $('#tdHear').textContent=t?t.hear:'Geser satu band saja pada satu waktu, supaya kamu tahu daerah mana yang menyebabkan perubahan.';
-  $('#tdCause').textContent=t?t.cause:'Tergantung bentuk kurvanya.';
-}
-
-/* ================= VOKAL ================= */
-const VBANDS={
-  all:['Semua',20,20000,'Seluruh pita, suara aslinya.'],
-  body:['Tubuh',80,400,'80–400 Hz: tubuh dan kehangatan vokal. Terlalu banyak jadi muddy, terlalu sedikit vokal terdengar kurus.'],
-  nasal:['Hidung',400,1000,'400 Hz–1 kHz: bagian "hidung". Terlalu banyak jadi boxy.'],
-  art:['Artikulasi',1000,3000,'1–3 kHz: bagian yang membuat kata mudah dimengerti.'],
-  pres:['Presence',3000,5000,'3–5 kHz: vokal terasa dekat dan hidup. Terlalu banyak jadi shouty.'],
-  sib:['Sibilan',5000,9000,'5–9 kHz: desis s dan t. Terlalu banyak jadi sibilance dan piercing. Hanya terdengar saat bagian "s" diputar.'],
-  air:['Udara',9000,16000,'9–16 kHz: napas dan udara di sekitar vokal. Jika hilang, suara terasa tumpul.']
-};
-const Vox={on:false,vowel:'a',who:'m',band:'all',id:null,live:[],hp:[],lp:[],inn:null};
-const plotVox=new FreqPlot($('#plotVox'),{range:[0,1],axis:false,hi:[],marks:[],hint:'Tekan Putar vokal'});
-chipRow($('#voxVowels'),[['a','A'],['e','E'],['i','I'],['o','O'],['u','U']],k=>{Vox.vowel=k;voxSync();if(Vox.on)voxRestart()});
-chipRow($('#voxWho'),[['m','Pria, ±120 Hz'],['f','Wanita, ±220 Hz']],k=>{Vox.who=k;voxSync();if(Vox.on)voxRestart()});
-chipRow($('#voxBands'),Object.entries(VBANDS).map(([k,v])=>[k,v[0]]),k=>{Vox.band=k;voxSync();voxFilters()});
-function voxSync(){
-  markChip($('#voxVowels'),Vox.vowel);markChip($('#voxWho'),Vox.who);markChip($('#voxBands'),Vox.band);
-  const fs=Vox.who==='f'?1.17:1,F=VOWELS[Vox.vowel];
-  plotVox.o.marks=F.map((f,i)=>({f:f*fs,label:'F'+(i+1)}));
-  const b=VBANDS[Vox.band];plotVox.o.hi=Vox.band==='all'?[]:[[b[1],b[2]]];
-  $('#voxBandInfo').textContent=b[3];
-}
-function voxFilters(){
-  if(!Vox.hp.length)return;
-  const b=VBANDS[Vox.band],t=ctx.currentTime;
-  Vox.hp.forEach(f=>f.frequency.setTargetAtTime(b[1],t,.02));Vox.lp.forEach(f=>f.frequency.setTargetAtTime(b[2],t,.02));
-}
-function voxCycle(){
-  const t=ctx.currentTime+.05,f=Vox.who==='f'?220:120,fs=Vox.who==='f'?1.17:1;
-  Vox.live.push(voiceNote(ctx,Vox.inn,t,1.15,f,Vox.vowel,MIX.vox*1.2,fs));
-  sBurst(ctx,Vox.inn,t+1.12,.3,MIX.sib*1.6);
-  if(Vox.live.length>6)Vox.live.shift();
-}
-function voxStart(){
-  claim('vox');ensureAudio();
-  Vox.inn=ctx.createGain();
-  const mk=(type)=>{const f=ctx.createBiquadFilter();f.type=type;f.Q.value=BUTTER_Q;return f};
-  Vox.hp=[mk('highpass'),mk('highpass')];Vox.lp=[mk('lowpass'),mk('lowpass')];
-  Vox.inn.connect(Vox.hp[0]);Vox.hp[0].connect(Vox.hp[1]);Vox.hp[1].connect(Vox.lp[0]);Vox.lp[0].connect(Vox.lp[1]);Vox.lp[1].connect(G.util);
-  voxFilters();Vox.on=true;busy.add('vox');
-  voxCycle();Vox.id=setInterval(voxCycle,2000);
-  $('#voxPlay').setAttribute('aria-pressed','true');$('#voxPlay').textContent='Hentikan vokal';
-}
-function voxRestart(){const t=ctx.currentTime;Vox.live.forEach(v=>v.kill(t));Vox.live=[];clearInterval(Vox.id);voxCycle();Vox.id=setInterval(voxCycle,2000)}
-function voxStop(){
-  if(!Vox.on)return;Vox.on=false;clearInterval(Vox.id);busy.delete('vox');
-  const t=ctx.currentTime;Vox.live.forEach(v=>v.kill(t));Vox.live=[];
-  const inn=Vox.inn;if(inn){inn.gain.setTargetAtTime(0,t,.02);setTimeout(()=>{try{inn.disconnect()}catch(e){}},400)}
-  $('#voxPlay').setAttribute('aria-pressed','false');$('#voxPlay').textContent='Putar vokal';
-}
-stoppers.set('vox',voxStop);
-$('#voxPlay').addEventListener('click',()=>Vox.on?voxStop():voxStart());
-voxSync();
-
-/* ================= TIMBRE ================= */
-const NH=12;
-const Tim={amps:[1,.5,.33,.25,.2,.17,.14,.12,.11,.1,.09,.08],f0:220,peak:false,peakF:1500,osc:null,on:false};
-const TPRE={
-  sin:['Sinus',[1,0,0,0,0,0,0,0,0,0,0,0]],
-  tri:['Segitiga',[1,0,.11,0,.04,0,.02,0,.012,0,.008,0]],
-  saw:['Gergaji',Array.from({length:NH},(_,i)=>1/(i+1))],
-  sq:['Persegi',Array.from({length:NH},(_,i)=>(i%2===0)?1/(i+1):0)],
-  clar:['Klarinet',[1,.02,.75,.03,.5,.04,.3,.03,.15,.02,.08,0]],
-  flute:['Seruling',[1,.35,.12,.06,.03,.02,.01,0,0,0,0,0]],
-  brass:['Trompet',[1,.9,.8,.7,.55,.4,.3,.2,.12,.08,.05,.03]]
-};
-chipRow($('#timPresets'),Object.entries(TPRE).map(([k,v])=>[k,v[0]]),k=>{Tim.amps=[...TPRE[k][1]];timSync();timUpdate()});
-chipRow($('#timNotes'),[['110','A2, 110 Hz'],['220','A3, 220 Hz'],['440','A4, 440 Hz']],k=>{Tim.f0=+k;timSync();timUpdate()});
-const hb=$('#harmBank');
-for(let i=0;i<NH;i++){
-  const col=document.createElement('div');col.className='eqcol';
-  col.innerHTML='<input class="vs" style="height:90px;width:20px" id="hs'+i+'" type="range" min="0" max="100" value="0" orient="vertical" aria-label="Harmonik ke-'+(i+1)+'"><span>'+(i+1)+'</span>';
-  hb.appendChild(col);
-  $('#hs'+i).addEventListener('input',e=>{Tim.amps[i]=e.target.value/100;timSync(true);timUpdate()});
-}
-function peakMag(freqs){
-  if(!Tim.peak||!shadow)return freqs.map(()=>1);
-  shadow.pk.frequency.value=Tim.peakF;const f=Float32Array.from(freqs),r=resp(shadow.pk,f);return [...r.m];
-}
-function timEff(){const mags=peakMag(Tim.amps.map((_,i)=>Tim.f0*(i+1)));return Tim.amps.map((a,i)=>a*mags[i])}
-const drawWave=autoCanvas($('#cvWave'),(c,w,h)=>{
-  const T=theme,orig=Tim.amps,eff=timEff();
-  c.strokeStyle=T.line;c.lineWidth=1;c.beginPath();c.moveTo(0,h/2);c.lineTo(w,h/2);c.stroke();
-  const wave=a=>{const N=360,ys=[];let mx=1e-6;for(let s=0;s<N;s++){const x=s/N*2;let y=0;for(let k=0;k<NH;k++)y+=a[k]*Math.sin(2*Math.PI*(k+1)*x);ys.push(y);mx=Math.max(mx,Math.abs(y))}return {ys,mx}};
-  const A=wave(orig),B=wave(eff),mx=Math.max(A.mx,B.mx);
-  const path=(W,col,wd,dash)=>{c.beginPath();W.ys.forEach((y,s)=>{const X=s/(W.ys.length-1)*w,Y=h/2-y/mx*(h/2-8);s?c.lineTo(X,Y):c.moveTo(X,Y)});c.strokeStyle=col;c.lineWidth=wd;c.setLineDash(dash);c.stroke();c.setLineDash([])};
-  if(Tim.peak)path(A,T.ink2,1.2,[4,4]);
-  path(B,T.accent,2.2,[]);
-  c.fillStyle=T.ink2;c.font='500 10px "JetBrains Mono",monospace';c.textAlign='left';c.fillText('bentuk gelombang, 2 periode',8,12);
-});
-const drawHarm=autoCanvas($('#cvHarm'),(c,w,h)=>{
-  const T=theme,orig=Tim.amps,eff=timEff(),mx=Math.max(1,...eff)*1.08,pad=8,bw=(w-pad*2)/NH,bot=h-18;
-  c.font='500 10px "JetBrains Mono",monospace';c.textAlign='center';
-  for(let i=0;i<NH;i++){
-    const x=pad+i*bw+bw*.18,ww=bw*.64,ho=orig[i]/mx*(bot-14),he=eff[i]/mx*(bot-14);
-    c.fillStyle=T.accent;c.fillRect(x,bot-he,ww,he);
-    if(Tim.peak){c.strokeStyle=T.ink2;c.lineWidth=1.2;c.setLineDash([3,3]);c.strokeRect(x,bot-ho,ww,ho);c.setLineDash([])}
-    c.fillStyle=T.ink2;c.fillText(String(i+1),x+ww/2,h-5);
-  }
-  if(Tim.peak){const px=pad+(Math.log(Tim.peakF/Tim.f0)/Math.log(NH)*0+0)}
-  c.textAlign='left';c.fillText(Tim.f0+' Hz x harmonik',8,12);
-});
-function timSync(fromSlider){
-  if(!fromSlider)Tim.amps.forEach((a,i)=>{$('#hs'+i).value=Math.round(a*100)});
-  markChip($('#timNotes'),Tim.f0);
-  const k=Object.keys(TPRE).find(k=>TPRE[k][1].every((v,i)=>Math.abs(v-Tim.amps[i])<.005));markChip($('#timPresets'),k||'');
-  $('#timPeakFo').textContent=Tim.peakF+' Hz';
-  drawWave();drawHarm();
-}
-function timWave(){
-  const re=new Float32Array(NH+1),im=new Float32Array(NH+1);
-  Tim.amps.forEach((a,i)=>im[i+1]=a);
-  if(Tim.amps.every(a=>a===0))im[1]=.0001;
-  return ctx.createPeriodicWave(re,im);
-}
-function timUpdate(){
-  if(!Tim.on||!Tim.osc)return;
-  const t=ctx.currentTime;
-  Tim.osc.setPeriodicWave(timWave());Tim.osc.frequency.setTargetAtTime(Tim.f0,t,.01);
-  Tim.pk.frequency.setTargetAtTime(Tim.peakF,t,.02);Tim.pk.gain.setTargetAtTime(Tim.peak?9:0,t,.02);
-}
-function timStart(){
-  claim('tim');ensureAudio();
-  Tim.osc=ctx.createOscillator();Tim.osc.setPeriodicWave(timWave());Tim.osc.frequency.value=Tim.f0;
-  Tim.pk=ctx.createBiquadFilter();Tim.pk.type='peaking';Tim.pk.Q.value=2.5;Tim.pk.frequency.value=Tim.peakF;Tim.pk.gain.value=Tim.peak?9:0;
-  Tim.g=ctx.createGain();Tim.g.gain.setValueAtTime(0,ctx.currentTime);Tim.g.gain.linearRampToValueAtTime(.12,ctx.currentTime+.06);
-  Tim.osc.connect(Tim.pk);Tim.pk.connect(Tim.g);Tim.g.connect(G.util);Tim.osc.start();
-  Tim.on=true;busy.add('tim');$('#timPlay').setAttribute('aria-pressed','true');$('#timPlay').textContent='Hentikan nada';
-}
-function timStop(){
-  if(!Tim.on)return;Tim.on=false;busy.delete('tim');
-  const t=ctx.currentTime,o=Tim.osc,g=Tim.g;g.gain.cancelScheduledValues(t);g.gain.setTargetAtTime(0,t,.02);
-  setTimeout(()=>{try{o.stop();o.disconnect();g.disconnect()}catch(e){}},200);
-  $('#timPlay').setAttribute('aria-pressed','false');$('#timPlay').textContent='Putar nada';
-}
-stoppers.set('tim',timStop);
-$('#timPlay').addEventListener('click',()=>Tim.on?timStop():timStart());
-$('#timPeak').addEventListener('change',e=>{Tim.peak=e.target.checked;timSync(true);timUpdate()});
-$('#timPeakF').addEventListener('input',e=>{Tim.peakF=+e.target.value;timSync(true);timUpdate()});
-timSync();
-
-/* ================= PUNCH ================= */
-const KP={click:.85,f:55,decay:.14};
-const KPRE={
-  punchy:['Punchy',{click:.85,f:55,decay:.14}],
-  boomy:['Boomy',{click:.25,f:45,decay:.55}],
-  soft:['Lembek, serangan lambat',{click:0,f:60,decay:.3}],
-  tight:['Tipis tapi ketat',{click:.7,f:95,decay:.08}]
-};
-chipRow($('#kickPresets'),Object.entries(KPRE).map(([k,v])=>[k,v[0]]),k=>{Object.assign(KP,KPRE[k][1]);kSync()});
-let kBuf=null,kPending=false;
-function kRender(){
-  if(kPending)return;kPending=true;
-  requestAnimationFrame(async()=>{
-    kPending=false;
-    try{
-      const sr=44100,oc=new OfflineAudioContext(1,Math.floor(sr*.8),sr),o=oc.createGain();o.connect(oc.destination);
-      kickVoice(oc,o,.01,{f:KP.f,decay:KP.decay,click:KP.click},1);
-      kBuf=(await oc.startRendering()).getChannelData(0);drawKick();
-    }catch(e){}
-  });
-}
-const drawKick=autoCanvas($('#cvKick'),(c,w,h)=>{
-  const T=theme,pl=8,pr=8,mid=h/2-6;
-  c.strokeStyle=T.line;c.lineWidth=1;c.fillStyle=T.ink2;c.font='500 9.5px "JetBrains Mono",monospace';c.textAlign='center';
-  for(let ms=0;ms<=800;ms+=100){const x=pl+ms/800*(w-pl-pr);c.globalAlpha=.7;c.beginPath();c.moveTo(x,6);c.lineTo(x,h-18);c.stroke();c.globalAlpha=1;c.fillText(ms+' ms',clamp(x,22,w-22),h-5)}
-  const x1=pl+.01/.8*(w-pl-pr),x2=pl+.03/.8*(w-pl-pr);
-  c.fillStyle=T.signalSoft;c.fillRect(x1,6,x2-x1,h-24);c.fillStyle=T.signal;c.textAlign='left';c.fillText('serangan',x2+3,16);
-  if(!kBuf)return;
-  c.fillStyle=T.accent;
-  const n=kBuf.length;c.beginPath();
-  const cols=Math.floor(w-pl-pr);
-  const top=[],bot=[];
-  for(let x=0;x<cols;x++){const a=Math.floor(x/cols*n),b=Math.floor((x+1)/cols*n);let mn=0,mx=0;for(let i=a;i<b;i++){const v=kBuf[i];if(v<mn)mn=v;if(v>mx)mx=v}top.push(mid-mx*(mid-10));bot.push(mid-mn*(mid-10))}
-  top.forEach((y,x)=>x?c.lineTo(pl+x,y):c.moveTo(pl,y));
-  for(let x=cols-1;x>=0;x--)c.lineTo(pl+x,bot[x]);
-  c.closePath();c.fill();
-});
-function kSync(){
-  $('#kClick').value=Math.round(KP.click*100);$('#kF').value=KP.f;$('#kD').value=Math.round(KP.decay*1000);
-  $('#kClickO').textContent=Math.round(KP.click*100)+'%';$('#kFO').textContent=KP.f+' Hz';$('#kDO').textContent=Math.round(KP.decay*1000)+' ms';
-  const k=Object.keys(KPRE).find(k=>{const v=KPRE[k][1];return Math.abs(v.click-KP.click)<.005&&v.f===KP.f&&Math.abs(v.decay-KP.decay)<.0005});
-  markChip($('#kickPresets'),k||'');kRender();
-}
-$('#kClick').addEventListener('input',e=>{KP.click=e.target.value/100;kSync()});
-$('#kF').addEventListener('input',e=>{KP.f=+e.target.value;kSync()});
-$('#kD').addEventListener('input',e=>{KP.decay=e.target.value/1000;kSync()});
-$('#kickHit').addEventListener('click',()=>{claim('kick');ensureAudio();kickVoice(ctx,G.util,ctx.currentTime+.02,KP,.9);busy.add('kickhit');setTimeout(()=>busy.delete('kickhit'),900)});
-const kLoop=new Sched(60/96/4,(i,t,D)=>{
-  const s=i%16;
-  if(s===0||s===6||s===8)kickVoice(ctx,D.kick,t,KP,.9);
-  if(s===4||s===12)hitSnare(ctx,D.snare,t,.4);
-  if(s%2===0)hitHat(ctx,D.hat,t,.04,.12);
-},'util','kloop');
-function kLoopStop(){if(kLoop.on){kLoop.stop();$('#kickLoop').setAttribute('aria-pressed','false');$('#kickLoop').textContent='Putar pola drum'}}
-stoppers.set('kloop',kLoopStop);
-$('#kickLoop').addEventListener('click',()=>{if(kLoop.on){kLoopStop();return}claim('kloop');kLoop.start();$('#kickLoop').setAttribute('aria-pressed','true');$('#kickLoop').textContent='Hentikan pola drum'});
-kSync();
-
-/* ================= RUANG ================= */
-const SPRE={
-  head:['Dalam kepala',{w:.2,d:0,s:.8}],
-  nat:['Natural',{w:.7,d:.25,s:1}],
-  hall:['Konser luas',{w:1,d:.8,s:1}],
-  mess:['Lebar tapi berantakan',{w:1,d:.5,s:0}],
-  mono:['Mono',{w:0,d:0,s:.5}]
-};
-chipRow($('#stagePresets'),Object.entries(SPRE).map(([k,v])=>[k,v[0]]),k=>{engage('stage');const v=SPRE[k][1];P.width=v.w;P.depth=v.d;P.sep=v.s;commit()});
-[['stW','width'],['stD','depth'],['stS','sep']].forEach(([id,key])=>$('#'+id).addEventListener('input',e=>{engage('stage');P[key]=e.target.value/100;commit()}));
-const SRC=[['Vokal','vox',0,.5],['Kick','kick',0,.78],['Snare','snare',.18,.7],['Hat','hat',.6,.62],['Bass','bass',-.12,.9],['Pad L','padL',-1,.5],['Pad R','padR',1,.5]];
-const stageSvg=$('#stageMap'),NS='http://www.w3.org/2000/svg';
-(function(){
-  let h='<ellipse cx="200" cy="232" rx="16" ry="13" fill="var(--panel2)" stroke="var(--ink)" stroke-width="1.6"/><rect x="180" y="226" width="5" height="12" rx="2" fill="var(--ink)"/><rect x="215" y="226" width="5" height="12" rx="2" fill="var(--ink)"/>';
-  h+='<path d="M200 214 L200 214" stroke="var(--ink)"/><text x="200" y="22" text-anchor="middle" class="sv-t">depan</text>';
-  [70,120,170].forEach(r=>{h+='<path d="M'+(200-r*1.35)+' 232 A'+r*1.35+' '+r+' 0 0 1 '+(200+r*1.35)+' 232" fill="none" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 5"/>'});
-  SRC.forEach(s=>{h+='<g id="sg-'+s[1]+'"><circle class="halo" r="8" fill="var(--accent-soft)"/><circle class="dot" r="7" fill="var(--accent)"/><text class="lbl" text-anchor="middle" y="-13" fill="var(--ink)" style="font:600 10px var(--font-ui)">'+s[0]+'</text></g>'});
-  stageSvg.innerHTML=h;
-})();
-function syncStage(){
-  $('#stW').value=Math.round(P.width*100);$('#stD').value=Math.round(P.depth*100);$('#stS').value=Math.round(P.sep*100);
-  $('#stWO').textContent=Math.round(P.width*100)+'%';$('#stDO').textContent=Math.round(P.depth*100)+'%';$('#stSO').textContent=Math.round(P.sep*100)+'%';
-  const k=Object.keys(SPRE).find(k=>{const v=SPRE[k][1];return Math.abs(v.w-P.width)<.005&&Math.abs(v.d-P.depth)<.005&&Math.abs(v.s-P.sep)<.005});
-  markChip($('#stagePresets'),P.owner==='stage'||!P.owner?k:'');
-  const st=stageEff();
-  SRC.forEach(s=>{
-    const g=$('#sg-'+s[1]);
-    const x=200+clamp(s[2]*st.spread,-1,1)*170,y=196-s[3]*95-st.depth*52;
-    g.setAttribute('transform','translate('+x.toFixed(1)+' '+y.toFixed(1)+')');
-    $('.halo',g).setAttribute('r',(8+(1-P.sep)*18).toFixed(1));
-    $('.dot',g).setAttribute('opacity',(0.55+0.45*P.sep).toFixed(2));
-  });
-}
-
-/* ================= OPEN / CLOSED ================= */
-$$('#encModes .chip').forEach(b=>b.addEventListener('click',()=>{engage('enc');P.enc=b.dataset.enc;if(P.noise===0)P.noise=.5;commit()}));
-$('#encNoise').addEventListener('input',e=>{engage('enc');P.noise=e.target.value/100;commit()});
-function syncEnc(){
-  const e=ENC[P.enc];
-  $$('#encModes .chip').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.enc===P.enc)));
-  $('#encFig').dataset.enc=P.enc;
-  $('#encNoise').value=Math.round(P.noise*100);$('#encNoiseO').textContent=Math.round(P.noise*100)+'%';
-  $('#roIso').textContent='-'+Math.round(-20*Math.log10(e.leak))+' dB';
-  $('#roBass').textContent=(e.bass>0?'+':'')+String(e.bass).replace('.',',')+' dB';
-  $('#roW').textContent=Math.round(clamp(P.width*e.w,0,1.25)*100)+'%';
-  $('#roLeak').textContent=P.enc==='open'?'Besar':P.enc==='closed'?'Kecil':'Sedang';
-}
-
-/* ================= DRIVER ================= */
-const L=(x,y,t)=>'<text x="'+x+'" y="'+y+'" class="sv-t">'+t+'</text>';
-const DRV={
-  dd:{name:'Dynamic driver (DD)',
-    svg:'<svg viewBox="0 0 340 180" role="img" aria-label="Penampang dynamic driver"><path class="sv-acc" d="M50 70 Q150 10 250 70 L250 78 L50 78 Z"/><rect class="sv-fill" x="128" y="78" width="44" height="26"/><path class="sv-line" d="M128 84 H172 M128 90 H172 M128 96 H172"/><rect class="sv-fill" x="80" y="104" width="140" height="48"/><rect x="140" y="104" width="20" height="48" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/><path class="sv-sig" d="M150 34 V18 M144 24 L150 17 L156 24"/>'+L(262,52,'diafragma')+L(180,96,'voice coil')+L(228,132,'magnet')+'</svg>',
-    how:'<b>Voice coil bergerak di dalam medan magnet dan menggerakkan diafragma</b> berbentuk kubah. Prinsipnya sama dengan speaker.',
-    plus:'Bass bertenaga dan terasa alami, ukuran fleksibel, harga bersahabat. Cocok sebagai driver tunggal maupun pengurus bass pada hybrid.',
-    minus:'Diafragma relatif berat sehingga treble dan transient pada rancangan sederhana bisa kalah cepat dari BA atau planar. Distorsi bisa naik di volume tinggi.',
-    char:'Bass dalam dan berbobot, suara terasa penuh.'},
-  ba:{name:'Balanced armature (BA)',
-    svg:'<svg viewBox="0 0 340 180" role="img" aria-label="Penampang balanced armature"><rect class="sv-fill" x="40" y="50" width="190" height="80" rx="6"/><rect class="sv-acc" x="80" y="72" width="70" height="36"/><path class="sv-line" d="M86 72 V108 M96 72 V108 M106 72 V108 M116 72 V108 M126 72 V108 M136 72 V108 M146 72 V108"/><path d="M60 90 H200" stroke="var(--signal)" stroke-width="5" stroke-linecap="round"/><path class="sv-line" d="M200 90 L222 74"/><path class="sv-line" d="M214 56 L214 124"/><path class="sv-sig" d="M236 66 Q250 90 236 114 M246 58 Q268 90 246 122"/>'+L(70,44,'kumparan')+L(60,150,'armature (batang logam)')+L(222,148,'diafragma mungil')+'</svg>',
-    how:'<b>Batang logam kecil (armature) bergetar di dalam kumparan</b> dan menggerakkan diafragma mungil lewat pengait. Satu BA biasanya nyaman hanya pada sebagian rentang, jadi IEM sering memakai beberapa BA dengan crossover.',
-    plus:'Kecil, cepat, dan detail di mid dan treble. Mudah ditumpuk dalam satu rumah IEM.',
-    minus:'Sulit menghasilkan bass dalam dan besar. Banyak driver butuh crossover rumit, yang rawan masalah koherensi.',
-    char:'Cepat dan bersih, kuat di mid-treble.'},
-  planar:{name:'Planar magnetic',
-    svg:'<svg viewBox="0 0 340 180" role="img" aria-label="Penampang planar magnetic"><g fill="var(--panel2)" stroke="var(--ink)" stroke-width="1.4"><rect x="40" y="36" width="24" height="26"/><rect x="82" y="36" width="24" height="26"/><rect x="124" y="36" width="24" height="26"/><rect x="166" y="36" width="24" height="26"/><rect x="208" y="36" width="24" height="26"/><rect x="40" y="118" width="24" height="26"/><rect x="82" y="118" width="24" height="26"/><rect x="124" y="118" width="24" height="26"/><rect x="166" y="118" width="24" height="26"/><rect x="208" y="118" width="24" height="26"/></g><path d="M36 90 Q60 82 84 90 T132 90 T180 90 T228 90 T252 90" stroke="var(--accent)" stroke-width="3" fill="none"/><path class="sv-sig" d="M144 74 V66 M140 70 L144 65 L148 70 M144 106 V114 M140 110 L144 115 L148 110"/>'+L(40,28,'susunan magnet')+L(40,164,'susunan magnet')+L(262,94,'diafragma tipis')+'</svg>',
-    how:'<b>Diafragma tipis dan datar dengan jejak konduktor</b> di atasnya, ditempatkan di antara susunan magnet. Seluruh permukaan digerakkan merata.',
-    plus:'Distorsi rendah, transient cepat, kontrol bass baik. Umum di headphone, mulai ada di IEM.',
-    minus:'Headphone planar cenderung berat dan butuh daya lebih besar. Harga biasanya tinggi.',
-    char:'Rapi, terkendali, bass bertekstur.'},
-  est:{name:'Electrostatic (EST)',
-    svg:'<svg viewBox="0 0 340 180" role="img" aria-label="Penampang electrostatic"><path d="M40 60 H250" stroke="var(--ink)" stroke-width="2.4" stroke-dasharray="8 5" fill="none"/><path d="M40 122 H250" stroke="var(--ink)" stroke-width="2.4" stroke-dasharray="8 5" fill="none"/><path d="M40 91 Q90 80 145 91 T250 91" stroke="var(--accent)" stroke-width="3" fill="none"/><path class="sv-sig" d="M274 74 V108 M268 82 L274 72 L280 82"/>'+L(40,50,'stator berlubang')+L(40,142,'stator berlubang')+L(40,172,'film tipis bermuatan listrik')+L(262,128,'tegangan bias')+'</svg>',
-    how:'<b>Film super tipis bermuatan listrik</b> berada di antara dua pelat berlubang (stator). Tegangan audio menggerakkan film. Butuh tegangan bias tinggi, jadi headphone EST memakai amplifier khusus. Pada IEM, EST biasanya dipakai sebagai tweeter kecil di dalam hybrid.',
-    plus:'Film sangat ringan sehingga treble halus dan cepat, dengan distorsi rendah.',
-    minus:'Butuh amp atau modul bias khusus, rawan lembab, dan kurang bertenaga di bass.',
-    char:'Treble halus dan berudara.'}
-};
-const drvTabs=$('#drvTabs');let drvCur='dd';
-Object.entries(DRV).forEach(([k,v])=>{const b=document.createElement('button');b.setAttribute('role','tab');b.dataset.k=k;b.textContent=v.name;b.addEventListener('click',()=>{drvCur=k;drvRender()});drvTabs.appendChild(b)});
-function drvRender(){
-  const d=DRV[drvCur];
-  $$('button',drvTabs).forEach(b=>b.setAttribute('aria-selected',String(b.dataset.k===drvCur)));
-  $('#drvBody').innerHTML='<div>'+d.svg+'</div><dl><div><dt>Cara kerja</dt><dd>'+d.how+'</dd></div><div><dt>Kelebihan</dt><dd>'+d.plus+'</dd></div><div><dt>Kekurangan</dt><dd>'+d.minus+'</dd></div><div><dt>Karakter umum</dt><dd>'+d.char+'</dd></div></dl>';
-}
-drvRender();
-
-/* ================= KOHEREN ================= */
-const XPRE={
-  ok:['Selaras',{d:0,l:0,p:false}],
-  late:['Terlambat 0,2 ms',{d:.2,l:0,p:false}],
-  loud:['Treble terlalu keras',{d:0,l:4,p:false}],
-  pol:['Polaritas terbalik',{d:0,l:0,p:true}]
-};
-const plotXo=new FreqPlot($('#plotXo'),{range:[-30,6],step:6,curve:xoCurve,marks:[{f:XO_F,label:'crossover 2,5k',c:null}]});
-chipRow($('#xoPresets'),Object.entries(XPRE).map(([k,v])=>[k,v[0]]),k=>{engage('xo');const v=XPRE[k][1];P.xo={on:true,delay:v.d,hi:v.l,pol:v.p};commit()});
-$('#xoD').addEventListener('input',e=>{engage('xo');P.xo.on=true;P.xo.delay=e.target.value/100;commit()});
-$('#xoL').addEventListener('input',e=>{engage('xo');P.xo.on=true;P.xo.hi=e.target.value/10;commit()});
-$('#xoP').addEventListener('change',e=>{engage('xo');P.xo.on=true;P.xo.pol=e.target.checked;commit()});
-const drawXoTime=autoCanvas($('#cvXoTime'),(c,w,h)=>{
-  const T=theme,pl=70,pr=12,x0=pl,x1=w-pr,sc=ms=>x0+ms/1.0*(x1-x0);
-  c.font='500 10px "JetBrains Mono",monospace';c.textBaseline='middle';
-  [['Driver bass',28,0],['Driver treble',62,P.xo.delay]].forEach(([n,y,d],i)=>{
-    c.fillStyle=T.ink2;c.textAlign='left';c.fillText(n,6,y);
-    c.strokeStyle=T.line;c.lineWidth=1;c.beginPath();c.moveTo(x0,y);c.lineTo(x1,y);c.stroke();
-    const x=sc(d);c.strokeStyle=i?T.signal:T.accent;c.lineWidth=3;c.beginPath();c.moveTo(x,y-12);c.lineTo(x,y+12);c.stroke();
-  });
-  c.fillStyle=T.ink2;c.textAlign='center';c.textBaseline='top';
-  [0,.25,.5,.75,1].forEach(ms=>{c.fillText(String(ms).replace('.',',')+' ms',clamp(sc(ms),x0+8,x1-12),h-13)});
-});
-function syncXo(){
-  const x=P.xo;
-  $('#xoD').value=Math.round(x.delay*100);$('#xoL').value=Math.round(x.hi*10);$('#xoP').checked=x.pol;
-  $('#xoDO').textContent=fmt(x.delay,2)+' ms';$('#xoLO').textContent=(x.hi>0?'+':'')+fmt(x.hi,1)+' dB';
-  const k=Object.keys(XPRE).find(k=>{const v=XPRE[k][1];return Math.abs(v.d-x.delay)<.005&&Math.abs(v.l-x.hi)<.05&&v.p===x.pol});
-  markChip($('#xoPresets'),k||'');
-  const cv=xoCurve(),i=FREQS.findIndex(f=>f>=XO_F),dip=Math.min(...[...cv].slice(Math.max(0,i-30),i+30));
-  const cm=(x.delay/1000)*343*100;
-  $('#xoInfo').innerHTML='Selisih waktu <b>'+fmt(x.delay,2)+' ms</b> setara beda jarak sekitar <b>'+fmt(cm,1)+' cm</b>. Lekukan terdalam di sekitar crossover: <b>'+(dip>-1?'hampir tidak ada':fmt(dip,0)+' dB')+'</b>. '+(dip<-6?'Vokal di daerah itu terdengar hilang atau hollow.':'Sambungan driver mulus.');
-  drawXoTime();
-}
-
-/* ================= MULTIPOINT ================= */
-const MP={mode:'multi',link:{laptop:true,phone:true},music:false,call:'idle',log:[]};
-function mpLog(t){MP.log.unshift(t);MP.log=MP.log.slice(0,6)}
-function ring(kind){
-  claim('mp');ensureAudio();const t=ctx.currentTime+.02;
-  const tone=(f,st,d)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=f;g.gain.setValueAtTime(.0001,st);g.gain.linearRampToValueAtTime(.12,st+.02);g.gain.setValueAtTime(.12,st+d-.03);g.gain.linearRampToValueAtTime(.0001,st+d);o.connect(g);g.connect(G.util);o.start(st);o.stop(st+d+.02)};
-  if(kind==='ring'){[0,.6].forEach(o=>{tone(440,t+o,.4);tone(480,t+o,.4)})}
-  else if(kind==='ping'){tone(880,t,.12);tone(1320,t+.12,.16)}
-  else if(kind==='music'){[261.63,329.63,392].forEach((f,i)=>tone(f,t+i*.14,.18))}
-  busy.add('mp');setTimeout(()=>busy.delete('mp'),1500);
-}
-stoppers.set('mp',()=>{});
-function mpStream(){
-  if(MP.call!=='idle'&&MP.link.phone)return 'phone';
-  if(MP.music&&MP.link.laptop)return 'laptop';
-  return null;
-}
-function renderMP(){
-  const s=mpStream();
-  $('#lnLaptop').dataset.s=!MP.link.laptop?'off':s==='laptop'?'active':'idle';
-  $('#lnPhone').dataset.s=!MP.link.phone?'off':s==='phone'?'active':'idle';
-  $('#gLaptop .dev').dataset.s=MP.link.laptop?(s==='laptop'?'active':'idle'):'off';
-  $('#gPhone .dev').dataset.s=MP.link.phone?(s==='phone'?'active':'idle'):'off';
-  $('#bLaptop').textContent=MP.music?'musik menyala':'';
-  $('#bPhone').textContent=MP.call==='ringing'?'berdering':MP.call==='active'?'dalam panggilan':'';
-  $('#mpStream').textContent=s==='phone'?'HP (panggilan)':s==='laptop'?'Laptop (musik)':'Tidak ada';
-  $('#mpCodec').textContent=s==='phone'?'HFP / mSBC, mode telepon':MP.mode==='multi'?'SBC atau AAC (umumnya)':'AAC, aptX, atau LDAC sesuai perangkat';
-  $$('#mpMode .chip').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===MP.mode)));
-  $('#mpSwitch').hidden=MP.mode!=='single';
-  $('#mpLog').innerHTML=MP.log.map(t=>'<li>'+t+'</li>').join('')||'<li>Pilih sebuah kejadian untuk melihat apa yang terjadi.</li>';
-}
-function mpSetMode(m){
-  MP.mode=m;MP.call='idle';
-  if(m==='single'){MP.link={laptop:true,phone:false};mpLog('Mode tanpa multipoint: headset hanya terhubung ke Laptop.')}
-  else{MP.link={laptop:true,phone:true};mpLog('Multipoint aktif: headset terhubung ke Laptop dan HP sekaligus.')}
-  renderMP();
-}
-$$('#mpMode .chip').forEach(b=>b.addEventListener('click',()=>mpSetMode(b.dataset.m)));
-$$('#mpActs [data-a]').forEach(b=>b.addEventListener('click',()=>{
-  const a=b.dataset.a,m=MP;
-  if(a==='music'){
-    m.music=!m.music;
-    if(!m.music)mpLog('Musik laptop dijeda.');
-    else if(!m.link.laptop)mpLog('Laptop tidak terhubung ke headset. Musik keluar dari speaker laptop.');
-    else if(m.call!=='idle')mpLog('Musik menunggu. Panggilan di HP diprioritaskan.');
-    else{mpLog('Laptop mengirim musik ke headset.');ring('music')}
-  }else if(a==='call'){
-    if(!m.link.phone)mpLog('HP berdering, tetapi headset tidak terhubung ke HP. Panggilan terlewat kecuali kamu berpindah koneksi.');
-    else if(m.call!=='idle')mpLog('Panggilan sudah berlangsung.');
-    else{m.call='ringing';mpLog(m.music?'HP berdering di headset. Musik laptop dijeda otomatis (perilaku bergantung model).':'HP berdering di headset.');ring('ring')}
-  }else if(a==='answer'){
-    if(m.call==='ringing'){m.call='active';mpLog('Panggilan diangkat. Mikrofon aktif dan kualitas turun ke mode telepon (HFP).')}
-    else mpLog('Tidak ada panggilan yang berdering.');
-  }else if(a==='hangup'){
-    if(m.call!=='idle'){m.call='idle';mpLog(m.music&&m.link.laptop?'Panggilan selesai. Musik laptop lanjut. Sebagian model perlu tekan play manual.':'Panggilan selesai.')}
-    else mpLog('Tidak ada panggilan.');
-  }else if(a==='ping'){
-    if(m.link.phone){mpLog('Notifikasi HP terdengar di headset (perilaku bergantung model).');ring('ping')}
-    else mpLog('Headset tidak terhubung ke HP, notifikasi tidak terdengar.');
-  }else if(a==='switch'){
-    const toPhone=m.link.laptop;m.link={laptop:!toPhone,phone:toPhone};m.call='idle';
-    mpLog('Memutus koneksi lama lalu menyambung ke '+(toPhone?'HP':'Laptop')+'. Butuh beberapa detik, dan musik harus diputar ulang.');
-  }
-  renderMP();
-}));
-
-/* ================= ALAT UJI ================= */
-const plotSw=new FreqPlot($('#plotSweep'),{range:[0,1],axis:false,marks:[{f:1000,label:'1,0 kHz'}],hint:'Tekan Putar nada'});
-const Sw={on:false,auto:false,osc:null,g:null,t0:0,f:1000};
-const swFreq=v=>20*Math.pow(1000,v/1000);
-function zoneOf(f){const z=ZONES.find(z=>f>=z[1]&&f<z[2])||ZONES[ZONES.length-1];return z[0]}
-function swComp(f){return .03*clamp(Math.pow(300/f,.8),1,6)*(f>9000?1.8:1)}
-function swSet(f){
-  Sw.f=f;
-  $('#swFO').textContent=(f>=1000?fmt(f/1000,2)+' kHz':Math.round(f)+' Hz')+' ('+zoneOf(f).toLowerCase()+')';
-  plotSw.o.marks=[{f,label:f>=1000?fmt(f/1000,2)+' kHz':Math.round(f)+' Hz'}];
-  if(Sw.on){const t=ctx.currentTime;Sw.osc.frequency.setTargetAtTime(f,t,.02);Sw.g.gain.setTargetAtTime(swComp(f),t,.05)}
-}
-function swStart(auto){
-  claim('sw');ensureAudio();
-  Sw.osc=ctx.createOscillator();Sw.osc.type='sine';Sw.osc.frequency.value=Sw.f;
-  Sw.g=ctx.createGain();Sw.g.gain.setValueAtTime(0,ctx.currentTime);Sw.g.gain.linearRampToValueAtTime(swComp(Sw.f),ctx.currentTime+.08);
-  Sw.osc.connect(Sw.g);Sw.g.connect(G.util);Sw.osc.start();Sw.on=true;busy.add('sw');
-  Sw.auto=!!auto;Sw.t0=performance.now();if(auto)Sw.startV=0;
-  swBtns();if(auto)swTick();
-}
-function swTick(){
-  if(!Sw.on||!Sw.auto)return;
-  const p=(performance.now()-Sw.t0)/25000;
-  if(p>=1){swStop();return}
-  const v=p*1000;$('#swF').value=v;swSet(swFreq(v));requestAnimationFrame(swTick);
-}
-function swStop(){
-  if(!Sw.on)return;Sw.on=false;Sw.auto=false;busy.delete('sw');
-  const t=ctx.currentTime,o=Sw.osc,g=Sw.g;g.gain.cancelScheduledValues(t);g.gain.setTargetAtTime(0,t,.03);
-  setTimeout(()=>{try{o.stop();o.disconnect();g.disconnect()}catch(e){}},250);swBtns();
-}
-function swBtns(){
-  $('#swPlay').setAttribute('aria-pressed',String(Sw.on&&!Sw.auto));$('#swPlay').textContent=Sw.on&&!Sw.auto?'Hentikan nada':'Putar nada';
-  $('#swAuto').setAttribute('aria-pressed',String(Sw.on&&Sw.auto));$('#swAuto').textContent=Sw.on&&Sw.auto?'Hentikan sapuan':'Sapu otomatis, 25 detik';
-}
-stoppers.set('sw',swStop);
-$('#swF').addEventListener('input',e=>{if(Sw.auto){Sw.auto=false;swBtns()}swSet(swFreq(+e.target.value))});
-$('#swPlay').addEventListener('click',()=>{if(Sw.on&&!Sw.auto)swStop();else{if(Sw.on)swStop();swStart(false)}});
-$('#swAuto').addEventListener('click',()=>{if(Sw.on&&Sw.auto)swStop();else{if(Sw.on)swStop();$('#swF').value=0;swSet(20);swStart(true)}});
-swSet(swFreq(333));
-
-/* tes kanal */
-function pinkBuffer(c,sec){
-  const n=Math.floor(c.sampleRate*sec),b=c.createBuffer(1,n,c.sampleRate),d=b.getChannelData(0);
-  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
-  for(let i=0;i<n;i++){const w=Math.random()*2-1;b0=.99886*b0+w*.0555179;b1=.99332*b1+w*.0750759;b2=.969*b2+w*.153852;b3=.8665*b3+w*.3104856;b4=.55*b4+w*.5329522;b5=-.7616*b5-w*.016898;d[i]=(b0+b1+b2+b3+b4+b5+b6+w*.5362)*.11;b6=w*.115926}
-  return b;
-}
-function chanTest(kind){
-  claim('chan');ensureAudio();
-  const src=ctx.createBufferSource();src.buffer=pinkBuffer(ctx,.5);
-  const env=ctx.createGain();env.gain.value=.25;
-  let t=ctx.currentTime+.05;
-  if(kind==='P'){
-    const sp=ctx.createChannelSplitter(1),mg=ctx.createChannelMerger(2),inv=ctx.createGain();inv.gain.value=-1;
-    src.connect(mg,0,0);src.connect(inv);inv.connect(mg,0,1);mg.connect(env);
-  }else{
-    const p=ctx.createStereoPanner();p.pan.value=kind==='L'?-1:kind==='R'?1:0;src.connect(p);p.connect(env);
-  }
-  env.connect(G.util);
-  /* tiga semburan lewat penjadwalan gain */
-  env.gain.setValueAtTime(0,t);
-  [0,.8,1.6].forEach(o=>{env.gain.setValueAtTime(0,t+o);env.gain.linearRampToValueAtTime(.25,t+o+.02);env.gain.setValueAtTime(.25,t+o+.4);env.gain.linearRampToValueAtTime(0,t+o+.45)});
-  src.loop=true;src.start(t);src.stop(t+2.1);
-  busy.add('chan');setTimeout(()=>busy.delete('chan'),2200);
-}
-stoppers.set('chan',()=>{});
-$$('#chanBtns [data-c]').forEach(b=>b.addEventListener('click',()=>chanTest(b.dataset.c)));
-
-/* lembar uji */
-const CK=[
-  'Bass: kick punya benturan awal yang jelas lalu berhenti cepat, bukan dengung (punch, bukan muddy atau boomy).',
-  'Low-mid: garis bass dan pad bisa dibedakan satu sama lain (separation).',
-  'Mid: vokal terbuka, tidak seperti dalam kotak (boxy) dan tidak agresif (shouty).',
-  'Treble: hi-hat dan desis "s" terdengar halus, tidak menusuk (piercing) atau mendesis keras (sibilance).',
-  'Detail: ekor hi-hat dan hal halus lain terdengar tanpa menaikkan volume (detail dan clarity).',
-  'Panggung: instrumen tersebar kiri-kanan dan ada kesan jarak (soundstage).',
-  'Timbre: nada vokal dan pad terdengar wajar, tidak metalik atau plastik.',
-  'Koheren: vokal, kick, dan hi-hat terasa satu sumber (terutama pada IEM multi-driver).',
-  'Nyaman: tidak terasa lelah setelah mendengar 30 menit.'
-];
-const ckState=store.get('lab-audio-ck',{c:Array(CK.length).fill(false),name:'',note:''});
-const ckList=$('#ckList');
-CK.forEach((t,i)=>{const l=document.createElement('label');l.className='check';l.innerHTML='<input type="checkbox" id="ck'+i+'"><span>'+t+'</span>';ckList.appendChild(l)});
-function ckSync(){const n=ckState.c.filter(Boolean).length;$('#ckSum').textContent=n+' dari '+CK.length+' poin terdengar baik pada perangkat ini.'}
-CK.forEach((_,i)=>{const el=$('#ck'+i);el.checked=!!ckState.c[i];el.addEventListener('change',()=>{ckState.c[i]=el.checked;store.set('lab-audio-ck',ckState);ckSync()})});
-$('#ckName').value=ckState.name||'';$('#ckNote').value=ckState.note||'';
-$('#ckName').addEventListener('input',e=>{ckState.name=e.target.value;store.set('lab-audio-ck',ckState)});
-$('#ckNote').addEventListener('input',e=>{ckState.note=e.target.value;store.set('lab-audio-ck',ckState)});
-ckSync();
-
-/* ringkasan */
-const GL=[
-  ['Vokal','Suara manusia dalam lagu. Natural jika tubuh, artikulasi, presence, dan sibilan seimbang.','85 Hz–9 kHz','#vokal'],
-  ['Sibilance','Desis tajam pada huruf s, t, c. Berlebih jika ada puncak di treble.','6–9 kHz','#peta'],
-  ['Soundstage','Ukuran ruang yang terbentuk: lebar, dalam, dan jarak.','Tuning dan desain cup','#ruang'],
-  ['Separation','Kemampuan membedakan tiap lapisan instrumen yang bermain bersamaan.','Semua pita','#ruang'],
-  ['Timbre','Warna suara yang membedakan alat musik, ditentukan komposisi harmonik.','Semua pita','#timbre'],
-  ['Punch','Dentuman yang memukul: serangan awal cepat dan bass cepat berhenti.','50–120 Hz dan 2–4 kHz','#punch'],
-  ['Detail / clarity','Terdengarnya hal halus dan kesan tiap elemen terpisah jelas.','3–14 kHz','#peta'],
-  ['Driver','Komponen yang mengubah sinyal listrik jadi getaran: DD, BA, planar, EST.','-','#driver'],
-  ['Open-back','Cup terbuka di belakang: lebih lega dan ringan di bass, tetapi bocor dan kurang isolasi.','-','#bukatutup'],
-  ['Closed-back','Cup tertutup: isolasi baik dan bass tebal, panggung cenderung lebih sempit.','-','#bukatutup'],
-  ['Multipoint connection','Satu headset Bluetooth terhubung ke dua perangkat sekaligus.','-','#multipoint'],
-  ['Piercing','Treble menusuk dan menyakitkan, lebih tajam daripada shouty.','4–7 kHz','#peta'],
-  ['Shouty','Vokal dan mid maju agresif seperti berteriak, melelahkan.','2–4 kHz','#peta'],
-  ['Muddy','Berkabut: bass dan low-mid menumpuk sehingga instrumen sulit dibedakan.','150–400 Hz','#peta'],
-  ['Boxy','Seperti bicara dari dalam kotak: tertutup dan hidung.','400–900 Hz','#peta'],
-  ['Koheren','Beberapa driver terdengar seperti satu sumber, selaras waktu dan fase.','Sekitar crossover','#koheren'],
-  ['Imaging','Ketepatan posisi tiap sumber suara di dalam panggung.','2–5 kHz dan fase','#ruang']
-];
-const glBody=$('#glTable tbody');
-const TON=['Vokal','Sibilance','Timbre','Piercing','Shouty','Muddy','Boxy'];
-function glBold(s){
-  const i=s.indexOf('. ');
-  if(i>0)return '<b>'+s.slice(0,i+1)+'</b>'+s.slice(i+1);
-  const j=s.search(/[:,]/);
-  return j>0?'<b>'+s.slice(0,j)+'</b>'+s.slice(j):'<b>'+s+'</b>';
-}
-function glRender(q){
-  q=(q||'').toLowerCase().trim();
-  const rows=GL.map(r=>[TON.includes(r[0])?'Tonality':'Technicality',...r]);
-  rows.sort((a,b)=>(a[0]===b[0]?0:a[0]==='Tonality'?-1:1));
-  glBody.innerHTML=rows.filter(r=>!q||r.join(' ').toLowerCase().includes(q)).map(r=>'<tr><td>'+r[1]+'</td><td class="mono" style="font-size:.76rem;color:var(--signal)">'+r[0]+'</td><td>'+glBold(r[2])+'</td><td class="mono num" style="font-size:.82rem">'+r[3]+'</td><td><a href="'+r[4]+'">Buka</a></td></tr>').join('')||'<tr><td colspan="5">Tidak ada istilah yang cocok.</td></tr>';
-}
-$('#glSearch').addEventListener('input',e=>glRender(e.target.value));
-glRender('');
-
-/* ================= belajar bertahap ================= */
-const STEPS=[
-  {s:'Persiapan',t:'Siapkan perangkat',min:3,show:['alat'],focus:null,goal:'Pastikan suara yang kamu dengar apa adanya.',
-   todo:['Pakai IEM atau headset, volume kecil.','Tekan <b>Kiri</b>, <b>Tengah</b>, <b>Kanan</b>. Suara harus datang dari sisi yang benar.','Pakai IEM? Ganti ear tips sampai bass terasa penuh.']},
-  {s:'Peta frekuensi',t:'Kenali bass, mid, treble',min:3,show:['tonality','peta'],focus:['flat','vshape','dull'],goal:'Lihat di grafik di mana tiap suara berada.',
-   todo:['Tekan <b>Putar lagu</b> dan lihat spektrum bergerak.','Bass di kiri, vokal di tengah, desis di kanan.','Coba <b>V-shape</b> dan <b>Tumpul</b>, lalu kembali ke <b>Flat</b>.']},
-  {s:'Low-mid',t:'Muddy dan boxy',min:3,show:['peta'],focus:['flat','muddy','boxy'],goal:'Bedakan dua suara yang sering membingungkan.',
-   todo:['Pilih <b>Flat</b>, dengarkan vokal dan bass.','Pilih <b>Muddy</b>: suara berkabut.','Pilih <b>Boxy</b>: vokal seperti di dalam kotak.']},
-  {s:'Treble',t:'Shouty, piercing, sibilance',min:4,show:['peta'],focus:['flat','shouty','piercing','sibilance','clear','dull'],goal:'Kenali suara tajam di treble.',
-   todo:['<b>Shouty</b>: vokal terasa berteriak.','<b>Piercing</b>: hi-hat menusuk.','<b>Sibilance</b>: huruf s mendesis. Lalu coba <b>Detail</b> dan <b>Tumpul</b>.']},
-  {s:'Vokal dan timbre',t:'Vokal dan timbre',min:4,show:['vokal','timbre'],focus:null,goal:'Dengar bagian-bagian suara dan warna nada.',
-   todo:['Vokal: tekan <b>Putar vokal</b>, lalu pilih pita <b>Presence</b> dan <b>Sibilan</b>.','Timbre: pilih preset gelombang dan bandingkan bunyinya.','Nyalakan <b>puncak respons</b>, dengar nada berubah.']},
-  {s:'Punch',t:'Punch',min:3,show:['technicality','punch'],focus:null,goal:'Bedakan bass yang memukul dari bass yang menggantung.',
-   todo:['Pilih <b>Punchy</b>, tekan Mainkan sekali.','Pilih <b>Boomy</b> dan bandingkan.','Tekan <b>Putar pola drum</b>.']},
-  {s:'Ruang',t:'Soundstage dan separation',min:4,show:['ruang'],focus:null,goal:'Bedakan ruang yang luas dari instrumen yang jelas.',
-   todo:['Pilih <b>Konser luas</b>.','Pilih <b>Lebar tapi berantakan</b>.','Turunkan <b>Separation</b>, dengar vokal tertutup.']},
-  {s:'Driver dan cup',t:'Driver dan tipe cup',min:5,show:['bukatutup','driver'],focus:null,goal:'Kenali apa yang membentuk karakter perangkat.',
-   todo:['Pilih <b>Closed-back</b>, lalu <b>Open-back</b>, dengan kebisingan menyala.','Buka tiap jenis driver di bawah.']},
-  {s:'Koheren',t:'Koheren',min:4,show:['koheren','multipoint'],focus:null,goal:'Dengar akibat driver yang tidak selaras.',
-   todo:['Pilih <b>Terlambat 0,2 ms</b>: vokal berlubang.','Kembali ke <b>Selaras</b>.','Multipoint: coba tombol telepon masuk (opsional).']},
-  {s:'Praktik',t:'Uji perangkatmu',min:5,show:['uji'],focus:null,goal:'Terapkan semuanya pada telingamu sendiri.',
-   todo:['Pakai <b>lagu sendiri</b> yang kamu hafal.','Centang poin yang terdengar baik.','Lupa istilah? Keluar dan buka tabel istilah.']}
-];
-const SEC_IDS=['tonality','peta','vokal','timbre','technicality','punch','ruang','bukatutup','driver','koheren','multipoint','harga','alat','uji','istilah'];
-const St=Object.assign({step:0,done:[]},store.get('lab-audio-steps',{}),{course:false});
-if(!Array.isArray(St.done)||St.done.length!==STEPS.length)St.done=Array(STEPS.length).fill(false);
-St.step=clamp(+St.step||0,0,STEPS.length-1);
-const stSave=()=>store.set('lab-audio-steps',{step:St.step,done:St.done});
-const stepOf=id=>{const i=STEPS.findIndex(s=>s.show.includes(id));return i<0?0:i};
-const CHECK='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
-const strip=$('#stepStrip'),dots=$('#cbSteps');
-STEPS.forEach((s,i)=>{
-  const b=document.createElement('button');b.className='sp';b.setAttribute('role','listitem');
-  b.innerHTML='<span class="n"></span><span class="l">'+s.s+'</span>';
-  b.addEventListener('click',()=>stStart(i));strip.appendChild(b);
-  const d=document.createElement('button');d.className='cb-dot';d.title='Langkah '+(i+1)+': '+s.s;d.setAttribute('aria-label','Langkah '+(i+1)+', '+s.s);
-  d.innerHTML='<span></span>';d.addEventListener('click',()=>stGo(i));dots.appendChild(d);
-});
-let moved=[];
-function mv(node,to){moved.push({node,parent:node.parentNode,next:node.nextSibling});to.appendChild(node)}
-function restore(){while(moved.length){const m=moved.pop();m.parent.insertBefore(m.node,m.next&&m.next.parentNode===m.parent?m.next:null)}}
-function buildCourse(s){
-  const L=$('#cLeft'),R=$('#cRight');
-  L.textContent='';R.textContent='';
-  mv($('#stepCard'),L);
-  const more=document.createElement('details');more.className='more';
-  more.innerHTML='<summary>Baca penjelasan lengkap</summary>';
-  L.appendChild(more);
-  s.show.forEach(id=>{
-    const sec=document.getElementById(id);
-    if(sec.classList.contains('cat')){mv(sec,more);return}
-    const labs=$$('.lab',sec);
-    if(!labs.length){mv(sec,R);return}
-    $$('.sec-head',sec).forEach(n=>mv(n,more));
-    $$('.prose',sec).forEach(n=>mv(n,more));
-    labs.forEach(n=>mv(n,R));
-    sec.hidden=true;
-  });
-  [L,R].forEach(p=>p.scrollTop=0);
-}
-function sizes(){
-  const r=document.documentElement.style;
-  r.setProperty('--bar',($('#courseBar').hidden?64:$('#courseBar').offsetHeight)+'px');
-  r.setProperty('--tp',$('.transport').offsetHeight+'px');
-}
-window.addEventListener('resize',sizes);
-function stApply(){
-  restore();$('#cLeft').textContent='';$('#cRight').textContent='';
-  const s=STEPS[St.step],c=St.course;
-  document.body.classList.toggle('course',c);
-  SEC_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.hidden=c&&!s.show.includes(id)});
-  $$('#termChips .chip').forEach(b=>b.hidden=c&&!!s.focus&&!s.focus.includes(b.dataset.k));
-  $('#courseBar').hidden=$('#stepCard').hidden=$('#stepFoot').hidden=!c;
-  const n=St.done.filter(Boolean).length;
-  $$('.sp',strip).forEach((b,i)=>{b.classList.toggle('done',!!St.done[i]);$('.n',b).innerHTML=St.done[i]?CHECK:String(i+1)});
-  $('#stStart').textContent=n===0?'Mulai belajar bertahap':n>=STEPS.length?'Ulangi belajar bertahap':'Lanjutkan dari langkah '+(St.step+1);
-  if(!c)return;
-  $$('.cb-dot',dots).forEach((b,i)=>{b.classList.toggle('cur',i===St.step);b.classList.toggle('done',!!St.done[i]&&i!==St.step);$('span',b).innerHTML=St.done[i]&&i!==St.step?CHECK.replace(/18/g,'12'):String(i+1);if(i===St.step)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current')});
-  $('#cbTitle').textContent='Langkah '+(St.step+1)+' dari '+STEPS.length+': '+s.s;
-  $('#cbProg').style.width=((St.step+1)/STEPS.length*100)+'%';
-  const last=St.step===STEPS.length-1,nx=STEPS[St.step+1];
-  $('#cbPrev').disabled=St.step===0;$('#cbNext').textContent=last?'Selesai':'Lanjut';
-  $('#stepCard').innerHTML='<span class="meta">Langkah '+(St.step+1)+' dari '+STEPS.length+', sekitar '+s.min+' menit</span><h3>'+s.t+'</h3><p class="goal">'+s.goal+'</p><ol class="todo">'+s.todo.map(x=>'<li>'+x+'</li>').join('')+'</ol>';
-  $('#stepFoot').innerHTML='<button class="btn" id="sfPrev"'+(St.step===0?' disabled':'')+'>Kembali</button><span class="sf-mid">Langkah '+(St.step+1)+' dari '+STEPS.length+'</span><button class="btn primary" id="sfNext">'+(last?'Selesai belajar bertahap':'Lanjut ke langkah '+(St.step+2))+'</button>';
-  $('#sfPrev').addEventListener('click',stPrev);$('#sfNext').addEventListener('click',stNext);
-  buildCourse(s);sizes();
-}
-function stPage(dir){
-  window.scrollTo({top:0,behavior:'instant'});
-  $$('.cpane').forEach(p=>p.scrollTop=0);
-  const m=$('main');m.classList.remove('pgf','pgb');void m.offsetWidth;m.classList.add(dir<0?'pgb':'pgf');
-}
-function stStart(i){
-  claim('__step');resetAll();
-  if(typeof i==='number')St.step=i;
-  St.course=true;stSave();stApply();stPage(1);
-}
-function stExit(){
-  claim('__step');resetAll();St.course=false;stSave();stApply();
-  $('#jalur').scrollIntoView({behavior:'instant'});
-}
-function stGo(i){
-  const dir=i>=St.step?1:-1;
-  claim('__step');resetAll();St.step=clamp(i,0,STEPS.length-1);stSave();stApply();stPage(dir);
-}
-function stPrev(){if(St.step>0)stGo(St.step-1)}
-function stNext(){
-  St.done[St.step]=true;
-  if(St.step===STEPS.length-1){stSave();stExit()}else stGo(St.step+1);
-}
-$('#cbPrev').addEventListener('click',stPrev);$('#cbNext').addEventListener('click',stNext);$('#cbExit').addEventListener('click',stExit);
-$('#stStart').addEventListener('click',()=>stStart());
-$('#heroStart').addEventListener('click',()=>stStart());
-/* tautan ke bagian yang sedang disembunyikan: pindah ke halaman yang memuatnya */
-document.addEventListener('click',e=>{
-  const a=e.target.closest('a[href^="#"]');if(!a||!St.course)return;
-  const id=a.getAttribute('href').slice(1),el=id&&document.getElementById(id);
-  if(!el||!el.hidden)return;
-  e.preventDefault();if(stepOf(id)!==St.step)stGo(stepOf(id));
-});
-stApply();
-
-/* ================= navigasi samping + scroll-spy ================= */
-(function(){
-  const nav=$('.nav'),ind=$('#navInd'),links=$$('a',nav),map=new Map();
-  $$('.nav>*').forEach((el,i)=>el.style.setProperty('--i',i));
-  const secs=links.map(a=>{const s=$(a.getAttribute('href'));if(s)map.set(s,a);return s}).filter(Boolean);
-  let cur=null;
-  const brand=$('#navBrand'),toTop=()=>window.scrollTo({top:0,behavior:'smooth'});
-  brand.addEventListener('click',toTop);
-  brand.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toTop()}});
-  const wide=()=>window.matchMedia('(min-width:1000px)').matches;
-  function place(a){
-    if(wide()){ind.style.opacity=a?1:0;if(a){ind.style.height=a.offsetHeight+'px';ind.style.transform='translateY('+a.offsetTop+'px)'}}
-  }
-  function set(a){
-    if(a===cur)return;cur=a;
-    links.forEach(l=>{l.classList.toggle('on',l===a);if(l===a)l.setAttribute('aria-current','true');else l.removeAttribute('aria-current')});
-    place(a);
-    if(a){
-      if(wide()){const r=a.getBoundingClientRect(),nr=nav.getBoundingClientRect();if(r.top<nr.top+40||r.bottom>nr.bottom-120)nav.scrollTo({top:a.offsetTop-nav.clientHeight/2,behavior:'smooth'})}
-      else nav.scrollTo({left:a.offsetLeft-nav.clientWidth/2+a.offsetWidth/2,behavior:'smooth'});
-    }
-  }
-  let tick=false;
-  function spy(){
-    tick=false;let best=null;
-    const line=window.innerHeight*.3;
-    secs.forEach(s=>{if(!s.hidden&&s.getBoundingClientRect().top<=line)best=s});
-    set(best?map.get(best):null);
-  }
-  window.addEventListener('scroll',()=>{if(!tick){tick=true;requestAnimationFrame(spy)}},{passive:true});
-  window.addEventListener('resize',()=>{const c=cur;cur=undefined;set(c)});
-  spy();
-})();
-
-/* tautan #bagian: gulung ke tujuan tanpa menambah # di URL */
-document.addEventListener('click',e=>{
-  if(e.defaultPrevented||e.metaKey||e.ctrlKey||e.shiftKey)return;
-  const a=e.target.closest('a[href^="#"]');if(!a)return;
-  const el=document.getElementById(a.getAttribute('href').slice(1));if(!el)return;
-  e.preventDefault();el.scrollIntoView({behavior:'smooth'});
-});
-try{if(location.hash)history.replaceState(null,'',location.pathname+location.search)}catch(e){}
-
-/* ================= sinkronisasi ================= */
-function syncAll(){syncPeta();syncStage();syncEnc();syncXo();syncTransport()}
-syncAll();renderMP();
-</script>
-
+<script src="js/01-core.js"></script>
+<script src="js/02-audio.js"></script>
+<script src="js/03-plot.js"></script>
+<script src="js/04-transport.js"></script>
+<script src="js/05-tonality.js"></script>
+<script src="js/06-technicality.js"></script>
+<script src="js/07-tools.js"></script>
+<script src="js/08-course.js"></script>
+<script src="js/09-ui.js"></script>
 </body>
 </html>

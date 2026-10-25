@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tes Lab Audio</title>
+<style>
+  body{font:15px/1.5 system-ui,sans-serif;margin:0;padding:24px;background:#f6f7f9;color:#14181f}
+  h1{font-size:1.3rem;margin:0 0 4px}
+  #sum{margin:0 0 16px;font-weight:600}
+  ul{list-style:none;padding:0;margin:0;display:grid;gap:6px;max-width:860px}
+  li{padding:8px 12px;border:1px solid #d5d9e0;border-radius:6px;background:#fff}
+  li.ok::before{content:"LOLOS  ";color:#0c8660;font:600 .75rem monospace}
+  li.bad{border-color:#c24a08;background:#fff4ee}
+  li.bad::before{content:"GAGAL  ";color:#c24a08;font:600 .75rem monospace}
+  li small{display:block;color:#5a6270;font-family:monospace;white-space:pre-wrap;margin-top:4px}
+  iframe{position:absolute;left:-9999px;width:1280px;height:900px}
+</style>
+</head>
+<body>
+<h1>Tes otomatis Lab Audio</h1>
+<p id="sum">Menjalankan...</p>
+<ul id="list"></ul>
+<iframe id="app" src="index.html" title="Aplikasi yang diuji"></iframe>
+<script>
+/* Tiap tes ditulis sebagai fungsi, lalu dijalankan di dalam halaman aplikasi (iframe sama-origin)
+   supaya bisa memakai variabel global aplikasi (P, STEPS, eqCurve, dst). Jalankan lewat server: python -m http.server */
+const tests=[];
+const test=(name,fn)=>tests.push({name,fn});
+
+test('Fungsi bantu: clamp, lerp, dB, fmt, fmtTime',()=>{
+  assert(clamp(5,0,3)===3&&clamp(-1,0,3)===0,'clamp');
+  assert(lerp(0,10,.5)===5,'lerp');
+  assert(Math.abs(dB(-6)-.501)<.01&&Math.abs(dB(20)-10)<1e-9,'dB');
+  assert(fmt(1.25,1)==='1,3'||fmt(1.25,1)==='1,2','fmt memakai koma');
+  assert(fmtTime(217)==='3:37'&&fmtTime(5)==='0:05','fmtTime');
+});
+
+test('EQ datar menghasilkan kurva 0 dB',()=>{
+  const keep=[...P.eq];P.eq=Array(9).fill(0);
+  const c=eqCurve();P.eq=keep;
+  assert(Math.max(...c.map(Math.abs))<.01,'kurva flat harus 0 dB');
+});
+
+test('Preset Muddy menaikkan daerah 200–400 Hz',()=>{
+  const keep=[...P.eq];P.eq=[...TERMS.muddy.eq];
+  const c=eqCurve();P.eq=keep;
+  const peak=c.indexOf(Math.max(...c));
+  assert(FREQS[peak]>150&&FREQS[peak]<500,'puncak di '+Math.round(FREQS[peak])+' Hz');
+  assert(Math.max(...c)>5,'naik lebih dari 5 dB');
+});
+
+test('Setiap preset punya 9 band dan zona yang valid',()=>{
+  TERM_ORDER.forEach(k=>{
+    const t=TERMS[k];assert(t&&t.eq.length===9,k+' harus punya 9 band');
+    assert(t.name&&t.def&&t.hear&&t.cause,k+' teks lengkap');
+    t.hi.forEach(([a,b])=>assert(a<b&&a>=20&&b<=20000,k+' zona valid'));
+  });
+});
+
+test('Crossover: selaras = datar, terlambat 0,2 ms = lekukan, polaritas terbalik = lekukan dalam',()=>{
+  const keep=JSON.stringify(P.xo);
+  P.xo={on:true,delay:0,pol:false,hi:0};
+  const flat=xoCurve();assert(Math.max(...flat.map(Math.abs))<1,'selaras harus rata dalam 1 dB');
+  P.xo={on:true,delay:.2,pol:false,hi:0};
+  const late=Math.min(...xoCurve());assert(late<-6,'terlambat 0,2 ms harus berlekuk, dapat '+late.toFixed(1));
+  P.xo={on:true,delay:0,pol:true,hi:0};
+  const inv=Math.min(...xoCurve());assert(inv<-15,'polaritas terbalik harus berlekuk dalam, dapat '+inv.toFixed(1));
+  P.xo=JSON.parse(keep);
+});
+
+test('Lagu sintetis: tidak clipping dan semua lapisan berbunyi',async()=>{
+  const sr=44100,len=sr*11;
+  async function render(only){
+    const oc=new OfflineAudioContext(2,len,sr),g=buildGraph(oc),D={};
+    BUS.forEach(b=>{D[b.n]=g[b.n].in;if(only&&!only.includes(b.n))g[b.n].in.gain.value=0});
+    for(let s=0;s<64;s++)scheduleStep(oc,D,s,.05+s*STEP);
+    const buf=await oc.startRendering(),l=buf.getChannelData(0),r=buf.getChannelData(1);
+    let pk=0,sum=0;for(let i=0;i<l.length;i++){pk=Math.max(pk,Math.abs(l[i]),Math.abs(r[i]));sum+=l[i]*l[i]}
+    return {pk,rms:Math.sqrt(sum/l.length)};
+  }
+  const all=await render(null);
+  assert(all.pk<1.2,'puncak campuran terlalu tinggi: '+all.pk.toFixed(2));
+  assert(all.rms>.02,'campuran terlalu pelan');
+  for(const grp of [['vox'],['kick','snare','hat'],['bass'],['padL','padR']]){
+    const r=await render(grp);assert(r.rms>.003,'lapisan '+grp+' nyaris senyap');
+  }
+});
+
+test('Pemilihan sumber lagu: lab ruang selalu sintetis',()=>{
+  const k={own:P.owner,rs:Real.state,sb:Song.buf,su:Song.use};
+  Real.state='ok';Song.buf=null;Song.use=false;P.owner='eq';
+  assert(pickSource()==='real','tanpa lagu sendiri harus memakai rekaman bawaan');
+  Song.buf={};Song.use=true;assert(pickSource()==='user','lagu sendiri didahulukan');
+  P.owner='stage';assert(pickSource()==='synth','lab ruang harus sintetis');
+  P.owner='eq';Song.use=false;Real.state='err';assert(pickSource()==='synth','tanpa rekaman harus jatuh ke sintetis');
+  Real.state=k.rs;Song.buf=k.sb;Song.use=k.su;P.owner=k.own;
+});
+
+test('Daftar langkah konsisten dengan bagian di halaman',()=>{
+  STEPS.forEach((s,i)=>{
+    assert(s.todo.length>=2&&s.goal&&s.t,'langkah '+(i+1)+' lengkap');
+    s.show.forEach(id=>{assert(SEC_IDS.includes(id),id+' ada di SEC_IDS');assert(document.getElementById(id),id+' ada di halaman')});
+  });
+  const used=new Set(STEPS.flatMap(s=>s.show));
+  SEC_IDS.filter(id=>!used.has(id)).forEach(id=>assert(['harga','istilah'].includes(id),id+' tidak dipakai langkah mana pun (hanya harga dan istilah yang boleh khusus mode lihat semua)'));
+});
+
+test('Mode belajar mengembalikan DOM seperti semula setelah keluar',()=>{
+  const sig=()=>SEC_IDS.map(id=>{const e=document.getElementById(id);return id+':'+[...e.querySelectorAll('*')].map(n=>n.tagName+(n.id?'#'+n.id:'')).join(',')}).join('|');
+  const before=sig(),was=[St.course,St.step];
+  for(let i=0;i<STEPS.length;i++){stStart(i)}
+  stExit();
+  assert(sig()===before,'struktur section berubah setelah keluar dari mode belajar');
+  assert(document.getElementById('stepCard').parentNode.id==='jalur','kartu langkah harus kembali ke #jalur');
+  St.step=was[1];St.course=was[0];stApply();
+});
+
+test('Semua tautan #bagian menuju elemen yang ada',()=>{
+  const bad=[...document.querySelectorAll('a[href^="#"]')].map(a=>a.getAttribute('href').slice(1)).filter(id=>id&&!document.getElementById(id));
+  assert(!bad.length,'tautan rusak: '+[...new Set(bad)].join(', '));
+});
+
+test('Tabel istilah: tautan valid dan kategori terdaftar',()=>{
+  GL.forEach(r=>assert(document.getElementById(r[3].slice(1)),r[0]+' menaut ke '+r[3]));
+  TON.forEach(n=>assert(GL.some(r=>r[0]===n),n+' ada di tabel'));
+});
+
+test('Lab transient: attack tumpul puncaknya lebih lambat, decay panjang menyisakan lebih banyak energi',async()=>{
+  async function render(p){
+    const sr=44100,oc=new OfflineAudioContext(1,sr,sr),o=oc.createGain();o.connect(oc.destination);
+    trVoice(oc,o,.01,p,330);
+    const d=(await oc.startRendering()).getChannelData(0);
+    let pk=0,pi=0;for(let i=0;i<d.length;i++){if(Math.abs(d[i])>pk){pk=Math.abs(d[i]);pi=i}}
+    let tail=0;for(let i=Math.floor(sr*.5);i<d.length;i++)tail+=d[i]*d[i];
+    return {peakMs:pi/sr*1000,tail,pk};
+  }
+  const sharp=await render({a:1,d:200,r:0}),blunt=await render({a:25,d:200,r:0});
+  const long=await render({a:1,d:650,r:0}),short=await render({a:1,d:40,r:0});
+  assert(blunt.peakMs>sharp.peakMs+10,'puncak attack tumpul harus lebih lambat: '+blunt.peakMs.toFixed(1)+' vs '+sharp.peakMs.toFixed(1)+' ms');
+  assert(long.tail>short.tail*10,'decay panjang harus menyisakan jauh lebih banyak energi di 500 ms');
+  assert(sharp.pk>.1&&sharp.pk<1,'level suara wajar');
+});
+
+test('Preset transient valid dan istilah terbagi tiga kategori',()=>{
+  Object.values(TRPRE).forEach(([n,p,t])=>assert(n&&t&&p.a>=0&&p.d>=30&&p.r>=0,n));
+  OVL.forEach(n=>assert(GL.some(r=>r[0]===n),n+' ada di tabel istilah'));
+  ['Transient','Attack','Decay'].forEach(n=>assert(GL.some(r=>r[0]===n),n+' ada di tabel istilah'));
+  const cats=new Set(GL.map(r=>TON.includes(r[0])?'T':OVL.includes(r[0])?'I':'X'));
+  assert(cats.size===3,'harus ada Tonality, Irisan, dan Technicality');
+});
+
+test('Pemutar: mulai dan berhenti tidak meninggalkan status sibuk',()=>{
+  stopTrack();assert(!playing()&&!busy.has('track'),'awal');
+  Track.start();assert(Track.on&&busy.has('track'),'mulai');
+  Track.stop();assert(!Track.on&&!busy.has('track'),'berhenti');
+});
+
+test('Pencatat waktu bisa dibuat dan dihentikan',()=>{
+  let n=0;const t=makeTicker(()=>n++,10);
+  return new Promise((res,rej)=>setTimeout(()=>{t.stop();n>0?res():rej(new Error('tidak berdetak'))},200));
+});
+
+test('Semua modul JavaScript dimuat tanpa kehilangan fungsi utama',()=>{
+  ['ensureAudio','buildGraph','scheduleStep','applyParams','engage','commit','resetAll','stGo','stStart','stExit','songStart','songSeek'].forEach(f=>assert(typeof eval(f)==='function',f+' hilang'));
+});
+
+(async function run(){
+  const frame=document.getElementById('app');
+  await new Promise(r=>frame.contentDocument&&frame.contentDocument.readyState==='complete'&&frame.contentWindow.SEC_IDS?r():frame.addEventListener('load',()=>setTimeout(r,600),{once:true}));
+  const win=frame.contentWindow;
+  win.eval("window.assert=function(c,m){if(!c)throw new Error(m||'assert')}");
+  const list=document.getElementById('list');let pass=0,fail=0;const results=[];
+  for(const t of tests){
+    const li=document.createElement('li');li.textContent=t.name;
+    try{
+      await win.eval('('+t.fn.toString()+')')();
+      li.className='ok';pass++;results.push({name:t.name,ok:true});
+    }catch(e){
+      li.className='bad';fail++;const m=document.createElement('small');m.textContent=String(e&&e.message||e);li.appendChild(m);
+      results.push({name:t.name,ok:false,error:String(e&&e.message||e)});
+    }
+    list.appendChild(li);
+  }
+  document.getElementById('sum').textContent=pass+' lolos, '+fail+' gagal dari '+tests.length+' tes';
+  window.__results={pass,fail,results};
+})();
+</script>
+</body>
+</html>
